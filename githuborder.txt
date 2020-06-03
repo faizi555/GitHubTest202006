@@ -1,4 +1,11 @@
 HEAD是一个指向分支的指针
+关于github版本控制的理解：git add是将文件的修改提交到暂存区（index）可将多个文件add到暂存区，
+						  git commit是将暂存区的文件提交到分支（master是git的默认分支），
+						  要实现本地仓库和远程仓库（repository）的版本控制的话需要，
+						  将分支的文件修改推送（push）到远程仓库完成版本控制
+						  推送命令git push -u origin master
+
+
 
 git init     通过这个命令把这个该目录变成Git可以管理的仓库：
 
