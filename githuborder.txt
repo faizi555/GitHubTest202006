@@ -14,7 +14,15 @@ github版本回退：
 					git restore --staged file（文件名）
 				已经commit后，git status会显示push（这是让你推送到远程仓库，一旦推送到远程仓库后就gg了无法回退）
 				如需回退到已经add时则使用
-					git reset --soft HEAD^ （个人理解的意思是回退到上一个版本）
+					git reset --soft HEAD^ （个人理解的意思是回退到上一个版本
+					HEAD^和HEAD~1一样都是上一个版本的意思，如果进行了2次commit，想撤回的话就可以使用HEAD~2
+					撤销commit参数：
+									--mixed：此为默认参数，不删除工作空间的修改，撤销commit和git add
+											 git reset --mixed HEAD^和git reset HEAD^效果一样
+									--soft：不删除工作空间改动，撤销commit但不撤销git add
+									--hard：删除工作空间改动，撤销commit和git add
+									注：使用次操作后，就恢复到上一次的commit状态
+					）
 
 
 git init     通过这个命令把这个该目录变成Git可以管理的仓库：
