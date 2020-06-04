@@ -4,7 +4,17 @@ HEAD是一个指向分支的指针
 						  要实现本地仓库和远程仓库（repository）的版本控制的话需要，
 						  将分支的文件修改推送（push）到远程仓库完成版本控制
 						  推送命令git push -u origin master
-
+						  
+github版本回退：
+				没有add时用git status会显示工作区有修改，回退则使用
+					git checkout -- file（文件名）或者
+					git restore file（文件名）
+				已经add后git status会显示有一个修改已经add等待commit，回退至没有add时则使用
+					git reset HEAD file（文件名）
+					git restore --staged file（文件名）
+				已经commit后，git status会显示push（这是让你推送到远程仓库，一旦推送到远程仓库后就gg了无法回退）
+				如需回退到已经add时则使用
+					git reset --soft HEAD^ （个人理解的意思是回退到上一个版本）
 
 
 git init     通过这个命令把这个该目录变成Git可以管理的仓库：
