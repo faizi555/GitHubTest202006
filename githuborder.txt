@@ -14,7 +14,13 @@ HEAD是一个指向分支的指针
 						  要实现本地仓库和远程仓库（repository）的版本控制的话需要，
 						  将分支的文件修改推送（push）到远程仓库完成版本控制
 						  推送命令git push -u origin master
-						  
+
+将本地仓库文件推送到新的远程仓库：
+						1.先断开与现remote的关联，命令：git remote rm origin
+						2.关联新的remote，命令：git remote add origin RemoteUrl（远程仓库的地址）
+						3.将workspace文件推送到remote需要命令：git push -u origin master
+
+	  
 github版本回退：
 				没有add时用git status会显示工作区有修改，回退则使用
 					git checkout -- file（文件名）或者
