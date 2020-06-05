@@ -1,92 +1,92 @@
 workspace  >>add>>  index  >>commit>>   Repository   >>push>>   Remote
-��remote��workspaceͬ������ git pull origin master����֧���ƣ�
+从remote和workspace同步代码 git pull origin master（分支名称）
 
-workspace������
-index�ݴ���
-repository�汾�������أ�
-remoteԶ�ֿ̲�
-������github����͹������̣���ţ�
+workspace工作区
+index暂存区
+repository版本区（本地）
+remote远程仓库
+以上是github区域和工作流程（大概）
 
 
-https��sshЭ�������https�ٶ���������ʱ���ͱ����������
-					 �����������ܶ�β���ԭ�򣬿��������˵ı����˽�ģ������Ӧ�����û��������룩 
+https和ssh协议的区别：https速度慢以外有时推送必须输入口令
+					 （本人碰到很多次不明原因，看到其他人的博客了解的，输入的应该是用户名和密码） 
 
-HEAD��һ��ָ���֧��ָ��
-����github�汾���Ƶ����⣺git add�ǽ��ļ����޸��ύ���ݴ�����index���ɽ�����ļ�add���ݴ�����
-						  git commit�ǽ��ݴ������ļ��ύ����֧��master��git��Ĭ�Ϸ�֧����
-						  Ҫʵ�ֱ��زֿ��Զ�ֿ̲⣨repository���İ汾���ƵĻ���Ҫ��
-						  ����֧���ļ��޸����ͣ�push����Զ�ֿ̲���ɰ汾����
-						  ��������git push -u origin master
+HEAD是一个指向分支的指针
+关于github版本控制的理解：git add是将文件的修改提交到暂存区（index）可将多个文件add到暂存区，
+						  git commit是将暂存区的文件提交到分支（master是git的默认分支），
+						  要实现本地仓库和远程仓库（repository）的版本控制的话需要，
+						  将分支的文件修改推送（push）到远程仓库完成版本控制
+						  推送命令git push -u origin master
 
-�����زֿ��ļ����͵��µ�Զ�ֿ̲⣺
-						1.�ȶϿ�����remote�Ĺ��������git remote rm origin
-						2.�����µ�remote�����git remote add origin RemoteUrl��Զ�ֿ̲�ĵ�ַ��
-						3.��workspace�ļ����͵�remote��Ҫ���git push -u origin master
+将本地仓库文件推送到新的远程仓库：
+						1.先断开与现remote的关联，命令：git remote rm origin
+						2.关联新的remote，命令：git remote add origin RemoteUrl（远程仓库的地址）
+						3.将workspace文件推送到remote需要命令：git push -u origin master
 
 	  
-github�汾���ˣ�
-				û��addʱ��git status����ʾ���������޸ģ�������ʹ��
-					git checkout -- file���ļ���������
-					git restore file���ļ�����
-				�Ѿ�add��git status����ʾ��һ���޸��Ѿ�add�ȴ�commit��������û��addʱ��ʹ��
-					git reset HEAD file���ļ�����
-					git restore --staged file���ļ�����
-				�Ѿ�commit��git status����ʾpush�������������͵�Զ�ֿ̲⣬һ�����͵�Զ�ֿ̲���gg���޷����ˣ�
-				������˵��Ѿ�addʱ��ʹ��
-					git reset --soft HEAD^ �������������˼�ǻ��˵���һ���汾
-					HEAD^��HEAD~1һ��������һ���汾����˼�����������2��commit���볷�صĻ��Ϳ���ʹ��HEAD~2
-					����commit������
-									--mixed����ΪĬ�ϲ�������ɾ�������ռ���޸ģ�����commit��git add
-											 git reset --mixed HEAD^��git reset HEAD^Ч��һ��
-									--soft����ɾ�������ռ�Ķ�������commit��������git add
-									--hard��ɾ�������ռ�Ķ�������commit��git add
-									ע��ʹ�ôβ����󣬾ͻָ�����һ�ε�commit״̬
-					��
+github版本回退：
+				没有add时用git status会显示工作区有修改，回退则使用
+					git checkout -- file（文件名）或者
+					git restore file（文件名）
+				已经add后git status会显示有一个修改已经add等待commit，回退至没有add时则使用
+					git reset HEAD file（文件名）
+					git restore --staged file（文件名）
+				已经commit后，git status会显示push（这是让你推送到远程仓库，一旦推送到远程仓库后就gg了无法回退）
+				如需回退到已经add时则使用
+					git reset --soft HEAD^ （个人理解的意思是回退到上一个版本
+					HEAD^和HEAD~1一样都是上一个版本的意思，如果进行了2次commit，想撤回的话就可以使用HEAD~2
+					撤销commit参数：
+									--mixed：此为默认参数，不删除工作空间的修改，撤销commit和git add
+											 git reset --mixed HEAD^和git reset HEAD^效果一样
+									--soft：不删除工作空间改动，撤销commit但不撤销git add
+									--hard：删除工作空间改动，撤销commit和git add
+									注：使用次操作后，就恢复到上一次的commit状态
+					）
 
-github�ļ�ɾ����1.rm file���ļ�����ɾ���������ļ����ļ�add�����ļ���Դ��������ɾ���ļ�����ֱ��
-				rm file���ļ�����ɾ�����Ὣ���������ļ�����ɾ����
-				2.��ʱgit status��״̬�������µ�һ���ύ�ȴ�commit����Ϊ�ļ��Ѿ�add���ݴ����ˣ���
-				������Ϊ�������ļ�ɾ����ʾ�ݴ����͹�������һ�¡�
-				������ڶ���״̬ʱ��������ѡ��һ�ǻ��˰汾�ָ��������ļ���Ϊ�ݴ������е�Ե�ʿ�ʹ��git checkout file�ָ�
-											  ����ʹ��git rm file����ɾ���ļ�����git commitһ�£�
-				ע����δ���ӵ��ݴ����ͱ�ɾ�����ļ����޷��޸��ģ�����
+github文件删除：1.rm file（文件名，删除工作区文件）文件add后在文件资源管理器中删除文件或者直接
+				rm file（文件名）删除都会将工作区中文件进行删除。
+				2.这时git status的状态会变成有新的一个提交等待commit（因为文件已经add到暂存区了），
+				还有因为工作区文件删除显示暂存区和工作区不一致。
+				（到达第二种状态时，有两个选择一是回退版本恢复工作区文件因为暂存区还有的缘故可使用git checkout file恢复
+											  二是使用git rm file彻底删除文件并且git commit一下）
+				注：从未添加到暂存区就被删除的文件是无法修复的！！！
 
-remoteClone��workspace���git clone RemoteUrl��Զ�ֿ̲�ĵ�ַ��
-��Զ�ֿ̲��¡�����ع�����������¡�ɹ���ǰ������ѡȡһ���ļ��н�����remote���й���
+remoteClone到workspace命令：git clone RemoteUrl（远程仓库的地址）
+（远程仓库克隆到本地工作区）：克隆成功的前提是先选取一个文件夹将它和remote进行关联
 	
-��remoteͬ����workspace�����git pull��������origin master����֧��
-							   pull���������ǽ�remote���ļ��·���workwspaceʵ��ͬ��
+将remote同步到workspace的命令：git pull（下拉）origin master（分支）
+							   pull下拉，就是将remote的文件下发到workwspace实现同步
 
-git init     ͨ���������������Ŀ¼���Git���Թ����Ĳֿ⣺
+git init     通过这个命令把这个该目录变成Git可以管理的仓库：
 
-git ..\ 	������һ���ļ���
+git ..\ 	返回上一级文件夹
 
-cd d:	��·����ת��ָ���̷���ʾ��Ϊd�̣�
-cd test	�����ĳ���̷���ִ�и����·����ת��test�ļ�����
+cd d:	将路径跳转至指定盘服（示例为d盘）
+cd test	如果在某个盘服下执行该命令将路径跳转至test文件夹下
 
-git diff HEAD -- file	file���ļ�����ͨ��������鿴�������Ͱ汾��������°汾����
-git diff ͨ��������鿴�ļ��޸ĵ����ݣ�ǰ���������ļ��Ѿ���add���ݴ�����
-git reflog �鿴ÿһ������
-git reset --hard commit_id	�����������л��ļ�������汾��commit_idд��ǰ�������֣�
+git diff HEAD -- file	file（文件名）通过此命令查看工作区和版本库里的最新版本区别
+git diff 通过此命令查看文件修改的内容，前提条件是文件已经被add到暂存区了
+git reflog 查看每一次命令
+git reset --hard commit_id	此命令用于切换文件的任意版本（commit_id写上前几个数字）
 
-git status �鿴��ǰ�ֿ�״̬������������£����еĴ�����������ύ��
-��$ git commit -m "add distributed"
+git status 查看当前仓库状态，如果出现以下（）中的代码就能正常提交了
+（$ git commit -m "add distributed"
 [master e475afc] add distributed
- 1 file changed, 1 insertion(+), 1 deletion(-��
+ 1 file changed, 1 insertion(+), 1 deletion(-）
 
-һ���ϴ��ļ�����
-git add .	1��.�����ϴ������ļ���.��λ�����滻���ļ��������ϴ������ļ���
-git commit -m "�ύ��ע"	2���ύ�ϴ��ļ�
-git push -u origin master����֧���ƣ� 	3�����ϴ����ļ�push�����ͣ���githubԶ�ֿ̲⣨����һ����
+一、上传文件命令
+git add .	1、.代表上传所有文件（.的位置能替换成文件名代表上传单个文件）
+git commit -m "提交备注"	2、提交上传文件
+git push -u origin master（分支名称） 	3、将上传的文件push（推送）到github远程仓库（最终一步）
 
-���������ļ�����
-git pull origin master		1��������Ϊͬ������andԶ�ֿ̲�
-git add file				2���ϴ�Ҫ���µ��ļ���file��
-git commit -m "�ύ��ע"	3���ύ���������Ӳ���˵��
-git push -u origin master����֧���ƣ�	4���������ļ�������Զ�ֿ̲�
+二、更新文件命令
+git pull origin master		1、此命令为同步本地and远程仓库
+git add file				2、上传要更新的文件（file）
+git commit -m "提交备注"	3、提交到本地添加操作说明
+git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
 
-����ɾ���ļ�����
-git pull origin master		1��ͬ������andԶ�ֿ̲�
-git rm -r --cached file 	2��fileΪҪɾ�����ļ�
-git commit -m '�ύ��ע'	3���ύ���������Ӳ���˵��
-git push -u origin master����֧���ƣ�	4���������ļ�������Զ�ֿ̲�
+三、删除文件命令
+git pull origin master		1、同步本地and远程仓库
+git rm -r --cached file 	2、file为要删除的文件
+git commit -m '提交备注'	3、提交到本地添加操作说明
+git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
