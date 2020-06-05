@@ -8,6 +8,9 @@ remote远程仓库
 以上是github区域和工作流程（大概）
 
 
+https和ssh协议的区别：https速度慢以外有时推送必须输入口令
+					 （本人碰到很多次不明原因，看到其他人的本科了解的，输入的应该是用户名和密码） 
+
 HEAD是一个指向分支的指针
 关于github版本控制的理解：git add是将文件的修改提交到暂存区（index）可将多个文件add到暂存区，
 						  git commit是将暂存区的文件提交到分支（master是git的默认分支），
@@ -47,8 +50,12 @@ github文件删除：1.rm file（文件名，删除工作区文件）文件add后在文件资源管理器中删
 				（到达第二种状态时，有两个选择一是回退版本恢复工作区文件因为暂存区还有的缘故可使用git checkout file恢复
 											  二是使用git rm file彻底删除文件并且git commit一下）
 				注：从未添加到暂存区就被删除的文件是无法修复的！！！
-				
 
+remoteClone到workspace命令：git clone RemoteUrl（远程仓库的地址）
+（远程仓库克隆到本地工作区）：克隆成功的前提是先选取一个文件夹将它和remote进行关联
+	
+将remote同步到workspace的命令：git pull（下拉）origin master（分支）
+							   pull下拉，就是将remote的文件下发到workwspace实现同步
 
 git init     通过这个命令把这个该目录变成Git可以管理的仓库：
 
