@@ -1,3 +1,13 @@
+workspace  >>add>>  index  >>commit>>   Repository   >>push>>   Remote
+从remote和workspace同步代码 git pull origin master（分支名称）
+
+workspace工作区
+index暂存区
+repository版本区（本地）
+remote远程仓库
+以上是github区域和工作流程（大概）
+
+
 HEAD是一个指向分支的指针
 关于github版本控制的理解：git add是将文件的修改提交到暂存区（index）可将多个文件add到暂存区，
 						  git commit是将暂存区的文件提交到分支（master是git的默认分支），
@@ -54,16 +64,16 @@ git status 查看当前仓库状态，如果出现以下（）中的代码就能正常提交了
 一、上传文件命令
 git add .	1、.代表上传所有文件（.的位置能替换成文件名代表上传单个文件）
 git commit -m "提交备注"	2、提交上传文件
-git push -u origin master 	3、将上传的文件push（推送）到github远程仓库（最终一步）
+git push -u origin master（分支名称） 	3、将上传的文件push（推送）到github远程仓库（最终一步）
 
 二、更新文件命令
 git pull origin master		1、此命令为同步本地and远程仓库
 git add file				2、上传要更新的文件（file）
 git commit -m "提交备注"	3、提交到本地添加操作说明
-git push -u origin master	4、将更新文件推送至远程仓库
+git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
 
 三、删除文件命令
 git pull origin master		1、同步本地and远程仓库
 git rm -r --cached file 	2、file为要删除的文件
 git commit -m '提交备注'	3、提交到本地添加操作说明
-git push -u origin master	4、将更新文件推送至远程仓库
+git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
