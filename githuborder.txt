@@ -20,6 +20,14 @@ remote远程仓库
 						master的提交不变。（看评论说好像有在master的时候能看见和操控leangle的情况）
 						如果想合并分支的将leangle的改动合并好master上，直接将master指向leangle的当前提交即可。
 						合并的话只是修改了指针的指向罢了。
+			分支命令：git branch 是查看所有分支，当前分支前面会有*并且是绿色
+					  git branch name 是创建分支
+					  git branch -d name 删除分支
+					  git checkout name OR git switch name切换分支
+					  git chectout -b name OR git switch -c name 是创建并且切换分支
+					  git merge name 在当前分支使用就是将name的分支合并到当前分支
+					  （切换分支和创建并切换分支建立使用switch，因为checkout是撤销修改命令有点不好分别）
+					  
 
 
 https和ssh协议的区别：https速度慢以外有时推送必须输入口令
