@@ -4,18 +4,4 @@ git is free sofrware distributed under the gpl
 git has a mutable index called stage
 git tracks changes of files
 
-测试更换远程仓库
-
-
-合并失败后。。。。。。。。。。gnnel
-测试1.40
-
-<<<<<<< HEAD
-2.40master进行提交
-=======
-
-ace进行提交
->>>>>>> ace
-
-2.50master提交
-
+测试在master对eee进行提交推送
