@@ -7,14 +7,5 @@ git tracks changes of files
 测试更换远程仓库
 
 
-合并失败后。。。。。。。。。。
+合并失败后。。。。。。。。。。gnnel
 
-使用leangle进行的提交
-<<<<<<< HEAD
-在master进行提交
-=======
-leangle分支练习
-切换分支 git switch name
-查看所有分支 git branch
-		
->>>>>>> leangle
