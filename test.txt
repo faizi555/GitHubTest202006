@@ -9,3 +9,7 @@ git tracks changes of files
 
 
 使用leangle进行的提交
+leangle分支练习
+切换分支 git switch name
+查看所有分支 git branch
+		
