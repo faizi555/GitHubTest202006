@@ -18,6 +18,8 @@ remote远程仓库
 						当在master指向最新提交的时候创建leangle，leangle指向的提交和master一样，
 						这时切换到leangle分支进行提交时只有leangle的提交增长，
 						master的提交不变。（看评论说好像有在master的时候能看见和操控leangle的情况）
+						如果想合并分支的将leangle的改动合并好master上，直接将master指向leangle的当前提交即可。
+						合并的话只是修改了指针的指向罢了。
 
 
 https和ssh协议的区别：https速度慢以外有时推送必须输入口令
