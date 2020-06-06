@@ -10,6 +10,14 @@ remote远程仓库
 分支管理：分支像平行宇宙，不同分支做不同的事，分支是独立的不会相互影响，
 			在开发中写了不完整的代码会导致别人不能进行正常工作，
 			可以创建分支在分支上进行代码编写，等待开发完毕后再合并给原分支即安全又不影响别人工作。
+			下面是分支的理解（看了廖雪峰老师的官网）：
+						github创建一个默认的分支master又为主分支，
+						master每提交一次分支就增长一次，（分支像一条提交线）
+						master是一个指针指向提交，HEAD指向分支，当HEAD指向master当前分支就为master
+						如果有一个叫leangle的分支，HEAD指向leangle时那现在使用的就是leangle分支了，
+						当在master指向最新提交的时候创建leangle，leangle指向的提交和master一样，
+						这时切换到leangle分支进行提交时只有leangle的提交增长，
+						master的提交不变。（看评论说好像有在master的时候能看见和操控leangle的情况）
 
 
 https和ssh协议的区别：https速度慢以外有时推送必须输入口令
