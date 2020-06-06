@@ -18,7 +18,7 @@ remote远程仓库
 						当在master指向最新提交的时候创建leangle，leangle指向的提交和master一样，
 						这时切换到leangle分支进行提交时只有leangle的提交增长，
 						master的提交不变。（看评论说好像有在master的时候能看见和操控leangle的情况）
-						如果想合并分支的将leangle的改动合并好master上，直接将master指向leangle的当前提交即可。
+						如果想合并分支将leangle的改动合并到master上的话，直接将master指向leangle的当前提交即可。
 						合并的话只是修改了指针的指向罢了。
 			分支命令：git branch 是查看所有分支，当前分支前面会有*并且是绿色
 					  git branch name 是创建分支
@@ -28,7 +28,7 @@ remote远程仓库
 					  git merge name 在当前分支使用就是将name的分支合并到当前分支
 					  git log --graph --pretty=oneline --abbrev-commit 查看分支合并图详细情况
 					  git log --graph 查看分支合并图
-					  （切换分支和创建并切换分支建立使用switch，因为checkout是撤销修改命令有点不好分别）
+					  （切换分支和创建并切换分支建议使用switch，因为checkout是撤销修改命令有点不好分别）
 			分支合并：现有2个分支master and leangle，使用leangle进行文件修改，master分支不变这时合并的话
 						需切换至master使用git master leangle命令进行分支合并，这个情况为快速合并git只需要将
 						master的指针移动到leangle的位置即可，master就能拥有leangle的修改内容了。
