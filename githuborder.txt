@@ -26,8 +26,24 @@ remote远程仓库
 					  git checkout name OR git switch name切换分支
 					  git chectout -b name OR git switch -c name 是创建并且切换分支
 					  git merge name 在当前分支使用就是将name的分支合并到当前分支
+					  git log --graph --pretty=oneline --abbrev-commit 查看分支合并图详细情况
+					  git log --graph 查看分支合并图
 					  （切换分支和创建并切换分支建立使用switch，因为checkout是撤销修改命令有点不好分别）
-					  
+			分支合并：现有2个分支master and leangle，使用leangle进行文件修改，master分支不变这时合并的话
+						需切换至master使用git master leangle命令进行分支合并，这个情况为快速合并git只需要将
+						master的指针移动到leangle的位置即可，master就能拥有leangle的修改内容了。
+					还有分支不成功的情况，如：
+						在leangle对文件修改并commit了再切换到master
+						（此时会提示master分支比远程的master分支超前一个提交（我觉得可能指的是leangle的提交因为master还没进行commit呢）
+						然后在master上对文件进行修改后commit，此时两个分支都有了新的提交，git无法执行快速合并
+						只能把各自的修改进行合并但是可能会有冲突，此时git status的话会提示冲突的文件
+						然后再查看文件内容，git用<<<<  ====  >>>>在文件中标记不同分支修改的内容
+						再用master修改文件commit，此时git就能进行快速合并了
+						查看分支情况命令：git log --graph --pretty=oneline --abbrev-commit此命令详细点
+										  git log --graph）
+						（个人理解的话，git的快速合并的情况是在一个分支比另一个分支多提交的时候才有效
+						合并错误的话可能是因为两个分支提交位置相同，进行合并的话产生冲突）
+						
 
 
 https和ssh协议的区别：https速度慢以外有时推送必须输入口令
