@@ -4,6 +4,6 @@ git is free sofrware distributed under the gpl
 git has a mutable index called stage
 git tracks changes of files
 
-测试在master对eee进行提交推送
+测试masterbug修复
 
 this eee de commit
