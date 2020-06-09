@@ -10,6 +10,11 @@ remote远程仓库
 分支管理：分支像平行宇宙，不同分支做不同的事，分支是独立的不会相互影响，
 			在开发中写了不完整的代码会导致别人不能进行正常工作，
 			可以创建分支在分支上进行代码编写，等待开发完毕后再合并给原分支即安全又不影响别人工作。
+			分支常用命令：git remote 查看远程库名
+						  git remote -v 查看远程库详细信息
+						  git checkout --set-upstream-to=origin/name name 本地和远程分支建立联系
+						  git branch -branch name origin/name 在本地创建和远程对应的分支（一样）本地和远程分支名最好一致
+			
 			下面是分支的理解（看了廖雪峰老师的官网）：
 						github创建一个默认的分支master又为主分支，
 						master每提交一次分支就增长一次，（分支像一条提交线）
@@ -20,6 +25,10 @@ remote远程仓库
 						master的提交不变。（看评论说好像有在master的时候能看见和操控leangle的情况）
 						如果想合并分支将leangle的改动合并到master上的话，直接将master指向leangle的当前提交即可。
 						合并的话只是修改了指针的指向罢了。
+			分支推送需求：master主分支，时刻与远程仓库同步。
+						  dev开发分支，开发成员在上面进行工作，需与远程同步。
+						  bug分支，用于在本地修复bug一般不进行推送。
+						  feature分支，取决于是否和朋友再合作上进行开发。
 			分支命令：git branch 是查看所有分支，当前分支前面会有*并且是绿色
 					  git branch name 是创建分支
 					  git branch -d name 删除分支
@@ -29,7 +38,7 @@ remote远程仓库
 					  git log --graph --pretty=oneline --abbrev-commit 查看分支合并图详细情况
 					  git log --graph 查看分支合并图
 					  （切换分支和创建并切换分支建议使用switch，因为checkout是撤销修改命令有点不好分别）
-			分支合并：现有2个分支master and leangle，使用leangle进行文件修改，master分支不变这时合并的话
+			分支合并（分支冲突）：现有2个分支master and leangle，使用leangle进行文件修改，master分支不变这时合并的话
 						需切换至master使用git master leangle命令进行分支合并，这个情况为快速合并git只需要将
 						master的指针移动到leangle的位置即可，master就能拥有leangle的修改内容了。
 					还有分支不成功的情况，如：
@@ -50,8 +59,23 @@ remote远程仓库
 							工作修改等操作应当在其他分支上进行操作，其他人在自己分支上进行工作，忘一条分支上进行合并，
 							当发送新版本的时候这条分支再与master进行合并，master再进行push）
 			BUG分支还不明白：
-			分支添加新功能：添加新功能时应当创建一个新的分支编写功能，如后期出现变故也能删除而不影响主分支
-							删除分支git branch -d name 会提示未合并什么的如果要强行删除的话输入-D。
+			FeaTure分支添加新功能：添加新功能时应当创建一个新的分支编写功能，如后期出现变故也能删除而不影响主分支
+									删除分支git branch -d name 会提示未合并什么的如果要强行删除的话输入-D。
+			分支多人协作模式：简介每人新建自己的分支或者从remote将项目上pull到workspace，各自在workspace上编写新功能
+							  再将功能合并到主分支上在进行提交推送
+							  注：从remote上clone时，只能看见本地的master分支！！
+							  所以需要创建origin的dev分支到本地，命令如下：
+							  git checkout -b dev origin/dev 
+							  如果其他人已经向origin/dev推送，你也对文件进行修改推送的话就会提示冲突！！！导致推送失败。
+							  解决方法就是git pull将最新的dev抓取下来在本地合并，解决冲突进行推送，
+							  如果pull失败，可能是本地和远程的dev没有进行指定，需要设置，命令如下：
+							  git branch --set-upstream-to=origin/dev dev
+							  解决冲突的话上面有解决冲突的理解可自行翻阅
+							  协作流程：git push origin name推送修改 >>>  推送失败的话可能因为远程版本比本地新  >>
+										使用git pull同步 >>  如果有冲突需解决冲突 >> 然后git push origin name即可
+										如果pull提示 no reacking information说明本地和远程分支没有建立关系命令如下：
+										git branch --set-upstream-to=origin/name name （name是分支名，origin是远程仓库名）
+										
 			
 			
 						
