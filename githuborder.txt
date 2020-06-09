@@ -14,7 +14,8 @@ remote远程仓库
 						  git remote -v 查看远程库详细信息
 						  git checkout --set-upstream-to=origin/name name 本地和远程分支建立联系
 						  git branch -branch name origin/name 在本地创建和远程对应的分支（一样）本地和远程分支名最好一致
-			
+			ReBase（变基）分支线强迫症命令：当多人在同一个分支上进行提交时，分支线会很乱后面push的话需要先进行pull才能push
+											rebase（变基）将分支线整理成一条干净的线，方便观看。缺点是本地分叉提交被修改过。
 			下面是分支的理解（看了廖雪峰老师的官网）：
 						github创建一个默认的分支master又为主分支，
 						master每提交一次分支就增长一次，（分支像一条提交线）
