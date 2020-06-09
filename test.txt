@@ -1,1 +1,7 @@
+<<<<<<< HEAD
 my 的 dev 修改
+=======
+my friend 的 dev
+>>>>>>> 338bbeefa9c621d43ce7c2af74695d48d6610f6b
+
+我的dev解决冲突
