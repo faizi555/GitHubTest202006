@@ -7,6 +7,8 @@ repository版本区（本地）
 remote远程仓库
 以上是github区域和工作流程（大概）
 
+当前用户的Git配置文件在用户文件夹下的隐藏文件.gitconfig中。
+
 
 以下是GitHub操作（大体上和GitEE差不多吧，gitee是码云中国的github托管平台）：
 
