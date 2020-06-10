@@ -10,6 +10,16 @@ remote远程仓库
 
 以下是GitHub操作（大体上和GitEE差不多吧，gitee是码云中国的github托管平台）：
 
+GitHub和GitEE可以同时关联同一个本地库，需要先删除默认的关联如origin
+				git remote rm origin 删除origin的命令
+				git remote add name remoteURL（是远程仓库的地址） 添加远程仓库的名字如github，仓库的地址关联github就用github地址
+																								关联gitee就用gitee的地址。
+				关联过后使用如下命令：
+				git remote -v 查看远程库的信息一般一个库有两条fetch和push
+				关联后，尽量pull后再进行push（有时候可能会冲突视情况而定吧）
+				默认命令是git push origin master ，git和push是不变的origin是远程仓库名字，master是分支名这两个是可以改变的。
+				远程仓库名改为github的话提交命令就是 git push github master 了。
+
 GitHub操作流程：参与开源项目流程，在项目界面点击Fork在自己账号下克隆出一个仓库再从自己账号下clone
 				这样的话就可以进行推送修改了，因为再别人的账号下进行clone的话是没有推送权限的。
 				关系例如：twbs/bootstrap  >>>  my/bootstrap  >>>  local/bootstrap
