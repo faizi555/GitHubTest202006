@@ -82,6 +82,7 @@ remote远程仓库
 标签管理：需要先切换到要打标签的分支
 		  注：标签是打在最新的commit上的，如果有两个或多个分支有这个commit，那么在其他分支上也能看见该标签（标签和commit挂钩）
 		创建标签：git tag name（标签名） 新建标签，默认为HEAD，也可以指定commit_id
+				  git tag -d name  删除标签
 				  git tag 查看所有标签
 				  git tag name commit_id（commit的唯一标识） 在以前的commit上打标签
 				  git show name 查看标签信息（提交的文件信息和标签说明文字）
