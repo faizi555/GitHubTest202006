@@ -134,7 +134,7 @@ GitHub修改使用命令：
 			分支多人协作模式：简介每人新建自己的分支或者从remote将项目上pull到workspace，各自在workspace上编写新功能
 						  再将功能合并到主分支上在进行提交推送
 						  注：从remote上clone时，只能看见本地的master分支！！
-						  所以需要创建origin的dev分支到本地，命令如下：
+						  所以需要创建origin的dev分支到本地，命令如下（dev是个例子，实际可能是其他的）：
 						  git checkout -b dev origin/dev 
 						  如果其他人已经向origin/dev推送，你也对文件进行修改推送的话就会提示冲突！！！导致推送失败。
 						  解决方法就是git pull将最新的dev抓取下来在本地合并，解决冲突进行推送，
@@ -156,7 +156,7 @@ GitHub修改使用命令：
 					  git show name 查看标签信息（提交的文件信息和标签说明文字）
 					  git tag -a name -m "标注" commit_id   -a是指定标签名-m指定说明文字
 			操作标签：因为标签创建是在本地，需要的话可将其推送到远程，以下是操作
-					  git push origin name  将标签推送到远程
+					  git push origin name  将标签推送到远程（此处name是标签名不是分支）
 					  git push origin --tags  将所有未推送的标签推送到远程
 					  git tag -d name  删除标签
 					  git push origin :refs/tags/name（标签名）   删除远程标签的命令
@@ -176,9 +176,9 @@ GitHub修改使用命令：
 							  推送命令git push -u origin master
 
 	将本地仓库文件推送到新的远程仓库：
-							1.先断开与现remote的关联，命令：git remote rm origin
+							1.先断开与现remote的关联，命令：git remote rm origin	（此处是删除远程仓库的origin分支）
 							2.关联新的remote，命令：git remote add origin RemoteUrl（远程仓库的地址）
-							3.将workspace文件推送到remote需要命令：git push -u origin master
+							3.将workspace文件推送到remote需要命令：git push -u origin master （好像是第一次需要-u，后续可以省略）
 							
 	一、上传文件命令
 					git add .	1、.代表上传所有文件（.的位置能替换成文件名代表上传单个文件）
@@ -214,7 +214,7 @@ GitHub修改使用命令：
 												 git reset --mixed HEAD^和git reset HEAD^效果一样
 										--soft：不删除工作空间改动，撤销commit但不撤销git add
 										--hard：删除工作空间改动，撤销commit和git add
-										注：使用次操作后，就恢复到上一次的commit状态
+										注：使用此操作后，就恢复到上一次的commit状态
 						）
 
 	github文件删除：1.rm file（文件名，删除工作区文件）文件add后在文件资源管理器中删除文件或者直接
