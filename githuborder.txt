@@ -12,6 +12,31 @@ remote远程仓库
 
 以下是GitHub操作（大体上和GitEE差不多吧，gitee是码云中国的github托管平台）：
 
+
+大招Git服务器搭建：因为是在linux环境下的操作，但是电脑上没有修写下流程，没有经过实践。
+				   github托管开源代码平台，如果不想开源代码又不想给github充钱就只能搭建一台git服务器
+				   首先需要用户有sudo权限，创建sudo权限用户链接：https://blog.csdn.net/wujunlei1595848/article/details/87027871
+				   1. $ sudo apt-get install git 安装git。
+				   2. $ sudo adduser git 创建git用户，用以运行git服务。
+				   3. 创建证书登录：要所有需要登陆的用户的公钥，就是id_rsa.pub文件，
+				      然后将公钥导入到/home/git/.ssh/authorized_keys文件中，格式一行一个。
+				   4. 初始化git仓库：选定一个目录作为git仓库，如/file/faizi.git，就在/file目录下输入
+					  $ sudo git init --bare faizi.git  git就会创建一个裸仓库，没有工作区
+					  因为服务器上的git仓库只是为了共享，所以不能直接登陆到服务器上修改工作区，
+					  服务器上的git仓库通常以.git结尾。
+					  将owner改为git： $ sudo chown -R git:git faizi.git （这一段owner不知道是什么意思，先写上）
+				   5.禁止shell登录：出于安全第二部创建的git用户不允登录shell，可通过编辑/etc/passwd文件
+					  找到类似 git:x:1001:1001:,,,:/home/git:/bin/bash 改为
+							   git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+					  然后git用户就可以通过ssh使用git，但无法登录shell，因为上面语句git-shell是指定每次登录（shell）就自动退出。
+				   6.克隆远程仓库：使用git clone remoteURL（远程仓库路径）克隆远程仓库然后对仓库进行其他操作。
+				   
+				   管理公钥：几个人的话就可以放到服务器的/home/git/.ssh/autorized_keys文件，但是有很多人的话就用Gitosis来管理。
+				   管理权限：因为git基于liunx开发的也继承了开源社区精神，不支持权限控制，但是支持钩子（hook）
+							 可以服务器一段编写脚本控制提交等操作，这个工具就是Gitolite。（如果想向SVN进行变态的控制权限的户）
+				   
+				   
+
 GitHub和GitEE可以同时关联同一个本地库，需要先删除默认的关联如origin
 				git remote rm origin 删除origin的命令
 				git remote add name remoteURL（是远程仓库的地址） 添加远程仓库的名字如github，仓库的地址关联github就用github地址
@@ -154,7 +179,24 @@ GitHub修改使用命令：
 							1.先断开与现remote的关联，命令：git remote rm origin
 							2.关联新的remote，命令：git remote add origin RemoteUrl（远程仓库的地址）
 							3.将workspace文件推送到remote需要命令：git push -u origin master
+							
+	一、上传文件命令
+					git add .	1、.代表上传所有文件（.的位置能替换成文件名代表上传单个文件）
+					git commit -m "提交备注"	2、提交上传文件
+					git push -u origin master（分支名称） 	3、将上传的文件push（推送）到github远程仓库（最终一步）
 
+	二、更新文件命令
+					git pull origin master		1、此命令为同步本地and远程仓库
+					git add file				2、上传要更新的文件（file）
+					git commit -m "提交备注"	3、提交到本地添加操作说明
+					git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
+
+	三、删除文件命令
+					git pull origin master		1、同步本地and远程仓库
+					git rm -r --cached file 	2、file为要删除的文件
+					git commit -m '提交备注'	3、提交到本地添加操作说明
+					git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
+	
 		  
 	github版本回退：
 					没有add时用git status会显示工作区有修改，回退则使用
@@ -208,19 +250,4 @@ GitHub修改使用命令：
 					[master e475afc] add distributed
 					 1 file changed, 1 insertion(+), 1 deletion(-）
 
-	一、上传文件命令
-					git add .	1、.代表上传所有文件（.的位置能替换成文件名代表上传单个文件）
-					git commit -m "提交备注"	2、提交上传文件
-					git push -u origin master（分支名称） 	3、将上传的文件push（推送）到github远程仓库（最终一步）
-
-	二、更新文件命令
-					git pull origin master		1、此命令为同步本地and远程仓库
-					git add file				2、上传要更新的文件（file）
-					git commit -m "提交备注"	3、提交到本地添加操作说明
-					git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
-
-	三、删除文件命令
-					git pull origin master		1、同步本地and远程仓库
-					git rm -r --cached file 	2、file为要删除的文件
-					git commit -m '提交备注'	3、提交到本地添加操作说明
-					git push -u origin master（分支名称）	4、将更新文件推送至远程仓库
+	
