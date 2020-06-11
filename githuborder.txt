@@ -13,7 +13,7 @@ remote远程仓库
 以下是GitHub操作（大体上和GitEE差不多吧，gitee是码云中国的github托管平台）：
 
 
-大招Git服务器搭建：因为是在linux环境下的操作，但是电脑上没有修写下流程，没有经过实践。
+大招Git服务器搭建：因为是在linux环境下的操作，但是电脑上没有，先写下流程，没有经过实践。
 				   github托管开源代码平台，如果不想开源代码又不想给github充钱就只能搭建一台git服务器
 				   首先需要用户有sudo权限，创建sudo权限用户链接：https://blog.csdn.net/wujunlei1595848/article/details/87027871
 				   1. $ sudo apt-get install git 安装git。
