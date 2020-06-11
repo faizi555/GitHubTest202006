@@ -15,3 +15,7 @@ git tracks changes of files
 在notebook进行commit
 
 1进行工作，隐藏的工作内容
+
+
+
+github远程仓库
