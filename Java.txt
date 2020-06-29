@@ -650,10 +650,21 @@ Java核心类：
 	
 	JavaBean(组件):	
 		封装实体类为了让外部访问设置值，而创造的getset方法，这种方法称为javabean。
-		
+		boolean比较特殊读方法get变成is(具体是get还是is根据情况来)
+		ecplise的getset的快捷键：Shift+Alt+S；或者 右键Source里面的getset。
+	枚举JavaBean属性：
+		例如：
+		BeanInfo info = Introspector.getBeanInfo(Person.class);
+        for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
+            System.out.println(pd.getName());
+            System.out.println("  " + pd.getReadMethod());
+            System.out.println("  " + pd.getWriteMethod());
+        }
+		使用Introspector枚举javabean的所有属性以及读写方法。
+		class属性是从object继承的getClass()方法的。
 	
-	
-	
+	小结：JavaBean是一种命名规范的class，用getset定义熟悉。
+		  使用Introspector.getBeanInfo()可以获取属性列表。
 	
 	
 	
