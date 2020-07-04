@@ -663,10 +663,897 @@ Java核心类：
 		使用Introspector枚举javabean的所有属性以及读写方法。
 		class属性是从object继承的getClass()方法的。
 	
-	小结：JavaBean是一种命名规范的class，用getset定义熟悉。
-		  使用Introspector.getBeanInfo()可以获取属性列表。
+		小结：JavaBean是一种命名规范的class，用getset定义熟悉。
+			  使用Introspector.getBeanInfo()可以获取属性列表。
 	
+	枚举类：
+		枚举使用，进行分割如：a，b，c，d;
+		enum是枚举类，枚举是类型，每个枚举类型是不一样的。
+		枚举的好处是，不同枚举不能相互比较或赋值，因为类型不符。
+		也就是说a枚举类复制称为b枚举类的值，a只能给a复制，因为枚举类型不一样所以会报类型错误。
+		enum比较方式:
+			enum是引用类型，但是比较不用equals而是用==因为，enum每个常量在jvm中只有一个唯一实例。
+		enum类型：
+			enum定义的枚举类和class没有任何区别，enum定义类型就是class只不过有几个特点：
+				定义的enum总是继承java.lang.Enum并且无法被继承。
+				只能定义出enum的实例，无法通过new创建enum实例。
+				定义的每个实例都是应用类型的唯一实例。
+				enum可用于switch语句。
+		enum是一个class，每个枚举的值都是class实例，so实例有些方法：
+			枚举类.枚举.name();		返回枚举名称。
+			枚举类.枚举.ordinal();	返回定义的常量的顺序，从0开始。
+			枚举类中是可以定义字段的(但是尽量定义常量的)。
+			可以给每个枚举常量添加字段如：
+				a(1),b(2),c(3),d(4);
+				这样就不用担心顺序变化，新增枚举常量时要指定个int值。
+			对枚举常量调用toString()会返回name()一样的字符串，但toString()可以被重写name()不行。
+			判断枚举常量的名字必须使用name()绝不能调用toString()。
+		因为枚举类天生的类型信息和有限个枚举常量，所以更适合switch语句。
+			
+		小结：
+			enum定义枚举，编译器会编译为final class ClassName extends Enum{}。
+			通过name()获取常量定义的字符串，不要使用toString()。
+			可为enum编写构造方法、字段、方法。
+			enum的构造方法要声明private，尽量使用final。
 	
+	记录类：
+		String、Integer都是不变类，不变类的特点：
+			定义class时使用final，无法派生子类。
+			每个字段使用final，保证创建实例后无法修改任何字段。
+		
+		record(重新编码):
+			java14后引入了Record类，类需要extends Record，定义语法是public record 方法名（）{}。
+			使用record关键字可以一行写出一个不变类。
+		
+	BigLnteger：
+		常用方法链接：https://blog.csdn.net/sobermineded/article/details/79299435
+		java中，cpu原生提供整数最大范围是64位long型整数。使用long型整数可以直接通过cpu指令进行计算，速度非常快。
+		java.math.BigInteger类用来表示任意大小整数，其内部用int[]数组模拟非常大的整数。
+			BigInteger bi = new BigInteger("1234567890");
+			System.out.println(bi.pow(5)); // 2867971860299718107233761438093672048294900000
+		BigInteger做运算的时候只能用实例方法如+：
+			BigInteger i1 = new BigInteger("1234567890");
+			BigInteger i2 = new BigInteger("12345678901234567890");
+			BigInteger sum = i1.add(i2); // 12345678902469135780
+		和long相比，BiGInteger没有范围限制但是速度慢，可将BigTnteger转为long。
+			BigInteger i = new BigInteger("123456789000");
+			System.out.println(i.longValue()); // 123456789000
+			System.out.println(i.multiply(i).longValueExact()); 
+			// java.lang.ArithmeticException: BigInteger out of long range
+		使用longValueExact()时，超出long范围后会抛出ArithmeticException。
+		BigInteger和Integer、Long都是不可变类，也继承自number，Number定义转换为基本类的方法：
+			转为byte：		byteValue()
+			转为short：		shortValue()
+			转为int:		intValue()
+			转为long:		longValue()
+			转为float: 		floatValue()
+			转为double:		doubleValue()
+		如果BigInteger表示范围超出了基本类型的范围，转换时丢失高位信息，结果不一定准确的。
+		要准确的转换成基本类型，使用intValueExact()、longValueExact()等方法，转换时超出范围，
+		直接抛出ArithmeticException异常。
+		
+	BigDecimal：
+		和BigInteger类似，它可以表示任意大小且精度完全准确的浮点数。
+		实例一个BigDecimal对象db：
+			db.multiply(db);					如果值是3，那么就是3*3，multiply是乘。
+			db.scale(db);						取浮点的小数。
+			db.stripTrailingZeros();			去掉末尾的0，如果使用scale查看返回负数的话
+												就是这个数是整数并且,-2就是就是两个0。
+			指定精度：
+				db.setScale(4,RoundingMode.HALF_UP)	四舍五入(看着语句的意思应该是向上取整)根据第一个值保留小数。
+				db.setScale(4,RoundingMode.DOWN);	截断根据第一个值保留小数，此处保留4位小数。
+			如果有两个bigdecimal对象1and2，那么创建一个该对象数组
+				1.divideAndRemainder(2);	做出发的同时求余数
+		在比较两个bigdecimal值时候相等时，使用equals()不但要求两个值相等还要求scale()相等。
+		必须必须必须使用compareTo()比较，它根据两个值大小分别返回负、正数和0，分别表示> < =。
+		源码中BigDecimal是通过BigInteger和scal表示的，BigInteger表示完整整数，scal表示小位数。
+		当然了BitDeicmal也是继承自Number的，也是不可变对象。
+		
+		因为其表示精确的小数，常用于财务计算。
+	
+	常用工具类：
+		Math：
+			进行数学计算的类，提供大量的静态方法便于实现数学计算。
+			求绝对值：
+				Math.abs(-100);		整数and0绝对值是其本身，负数绝对值是它相反数。
+			取最大最小：
+				Math.max(10,1);		选取值中最大的
+				Math.min(13.1,1.2);	选取值中最小的
+			计算xy次方：
+				Math.pow(2,10);		2的10次方=1024
+			计算√x：	
+				Math.sqrt(2); // 1.414...
+			计算ex次方：
+				Math.exp(2); // 7.389...
+			计算以e为底的对数：
+				Math.log(4); // 1.386..
+			计算以10为底的对数：
+				Math.log10(100); // 2
+			三角函数：
+				Math.sin(3.14); // 0.00159...
+				Math.cos(3.14); // -0.9999...
+				Math.tan(3.14); // -0.0015...
+				Math.asin(1.0); // 1.57079...
+				Math.acos(1.0); // 0.0
+			Math还提供了几个数学常量：
+				double pi = Math.PI; // 3.14159...
+				double e = Math.E; // 2.7182818...
+				Math.sin(Math.PI / 6); // sin(π/6) = 0.5
+			生成一个随机数x，x的范围是0 <= x < 1：
+				Math.random(); // 0.53907... 每次都不一样
+				这个生成随机数的类型只能是double，例子：
+					double a = Math.random();	现在的取值范围0，1
+					double b = 10;
+					double c = 30;
+					double d = a*(c-b)+b; 	现在的取值范围是10-30的小数
+					long e = (long) d;		使用类型的话e的取值范围就是10-30的整数
+					Systom.out.println(d);
+			Random：
+				创建伪随机数，是指定一个初始的种子，产生的水机数序列是完全一样的。
+				生成随机数的方法：
+					nextInt()、nextLong()、nextFloat()、nextDouble()
+					Random r = new Random();
+					r.nextInt(); // 2071575453,每次都不一样
+					r.nextInt(10); // 5,生成一个[0,10)之间的int
+					r.nextLong(); // 8811649292570369305,每次都不一样
+					r.nextFloat(); // 0.54335...生成一个[0,1)之间的float
+					r.nextDouble(); // 0.3716...生成一个[0,1)之间的double
+				SecureRandom:
+					有伪随机数，就有真随机数。实际上真正的真随机数只能通过量子力学原理来获取，
+					而我们想要的是一个不可预测的安全的随机数，SecureRandom就是用来创建安全的随机数的：
+					SecureRandom sr = new SecureRandom();
+					System.out.println(sr.nextInt(100));
+					密码学中，安全的随机数非常重要，不使用安全的伪随机数，所有加密体系都将被攻破，
+					必须使用secureRandom产生安全的随机数。
+					详情：https://www.liaoxuefeng.com/wiki/1252599548343744/1260473555087392
+			
+			Math：数据计算
+			Random：生成伪随机数
+			SecureRandom：生成安全的伪随机数
+
+异常处理：
+	
+	java异常：
+		值为int但输入String时会报数字形式错误异常 							NumberFormatExcrption
+		程序像读取文件，但是计算机没有或者被删掉了报文件未被创建			FileNotFoundException	
+		调用方法获知调用失败的信息：
+			1.约定返回错误码：
+				如：处理个文件返回0成功返回其他整数表示约定的错误码。
+			2.语言层面上提供个异常处理机制：
+				java内置了一套异常处理机制总是使用异常表示错误。
+				异常是一种class，so本身带有类型信息。异常可以在任何地方抛出，但是要在上层捕获，
+				这样就和方法调用分离了。
+		如下是异常的继承关系：
+					 ┌───────────┐
+                     │  Object   │
+                     └───────────┘
+                           ▲
+                           │
+                     ┌───────────┐
+                     │ Throwable │
+                     └───────────┘
+                           ▲
+                 ┌─────────┴─────────┐
+                 │                   │
+           ┌───────────┐       ┌───────────┐
+           │   Error   │       │ Exception │
+           └───────────┘       └───────────┘
+                 ▲                   ▲
+         ┌───────┘              ┌────┴──────────┐
+         │                      │               │
+┌─────────────────┐    ┌─────────────────┐┌───────────┐
+│OutOfMemoryError │... │RuntimeException ││IOException│...
+└─────────────────┘    └─────────────────┘└───────────┘
+                                ▲
+                    ┌───────────┴─────────────┐
+                    │                         │
+         ┌─────────────────────┐ ┌─────────────────────────┐
+         │NullPointerException │ │IllegalArgumentException │...
+         └─────────────────────┘ └─────────────────────────┘
+		Throwable是异常的根继承自object，他有两个体系：error和exception
+		error表示严重错误，程序对此无能为力如：
+			OutOfMemoryError：内存耗尽
+			NoClassDefFoundError：无法加载某个Class
+			StackOverflowError：栈溢出
+		exception是运行时错误，可以被捕获并处理如：
+			NumberFormatException：数值类型的格式错误
+			FileNotFoundException：未找到文件
+			SocketException：读取网络失败
+		又或者是程序逻辑不对造成如：
+			NullPointerException：对某个null的对象调用方法或字段
+			IndexOutOfBoundsException：数组索引越界
+		exception分两大类：
+			1.RuntimeException及它的子类
+			2.非RuntimeException（包括IOException、ReflectiveOperationException等等）
+		java规定：
+			必须捕获的异常包括Exception及其子类，不包括RuntimeException及其子类，这种类型称为Checked Exception。
+			不需要捕获的异常，error及其子类，RuntimeException及其子类。
+		
+		捕获异常：
+			通常使用try..catch语句，将可能异常的代码放到try{}下，使用catch捕获对应的exception及其子类。
+			很多地方不捕获异常将会报错，捕获后将返回异常信息。
+			
+			方法定义的时候使用throws xx表示改方法可能抛出异常类型。调用方在调用的时候必须强制捕获否则编译报错。
+			也就是说可见本类的异常进行抛出，但是其他类调用此类时必须强制捕获异常否则报错。
+			如果不捕获的话可以一直throws 异常类型进行抛出。
+			如果在main方法还是抛出后，那么一旦发生异常程序立刻退出。
+			
+			所有异常都能调用printStackTrace()方法打印异常栈，是一个简单有用快速打印异常的方法。
+		
+		结：
+			Java使用异常来表示错误，并通过try ... catch捕获异常；
+
+			Java的异常是class，并且从Throwable继承；
+
+			Error是无需捕获的严重错误，Exception是应该捕获的可处理的错误；
+
+			RuntimeException无需强制捕获，非RuntimeException（Checked Exception）需强制捕获，或者用throws声明；
+
+			不推荐捕获了异常但不进行任何处理。
+		
+	捕获异常：
+		多层catch语句：
+			使用多个catch语句，每个分别捕获对应的exception及其子类。JVM捕获到异常后，会从上到下匹配catch语句，
+			匹配到某个catch后执行catch代码，然后不再继续匹配。
+			多个catch只有一个被执行，并且顺序很重要，子类写前否则就会被其他高级的异常类执行了。
+		
+		finally语句：
+			无论发生什么都会运行finally下的代码，finally顺序在catch后面。
+			finally不是必须的可写可不写，finally总是最后执行。
+		
+		捕获多种异常：
+			某些异常处理逻辑相同，但是异常本身不存在继承关系，就得编写多条catch子句。
+			
+	抛出异常：
+		异常传播：
+			某方法抛出异常，当前方法没有抛出，异常就会被抛到上层调用方法，直到被try捕获为止。
+			异常.printStackTrace()可以打印出方法的调用栈。
+		抛出异常：
+			发生错误时，如输入非法字符就可抛出异常。
+			如果方法捕获异常后，又在carch中抛出新的异常，就相当于把抛出的异常类型转换了。
+			捕获异常并抛出时，一定保留住原始异常否则很难定位第一案发现场。
+			如果在catch中抛出异常那么，不会影响finally的运行，JVM会先执行finally然后抛出异常。
+		异常屏蔽：
+			如果执行finally时抛出异常，那么catch准备抛出的异常就消失了，so只能抛出一个异常，
+			没有被抛出的被称为"被屏蔽"的异常(Suppressed Exception)。
+			如果要获知所有异常先用Exception对象保存原始异常，后调用Throwable.addSuppressed(),
+			把原始异常添加进来，最后在finally抛出。
+		异常打印的详细的栈信息是找出问题的关键！
+	
+	自定义异常：
+		Java标准库定义的常用异常包括：
+			Exception
+			│
+			├─ RuntimeException
+			│  │
+			│  ├─ NullPointerException
+			│  │
+			│  ├─ IndexOutOfBoundsException
+			│  │
+			│  ├─ SecurityException
+			│  │
+			│  └─ IllegalArgumentException
+			│     │
+			│     └─ NumberFormatException
+			│
+			├─ IOException
+			│  │
+			│  ├─ UnsupportedCharsetException
+			│  │
+			│  ├─ FileNotFoundException
+			│  │
+			│  └─ SocketException
+			│
+			├─ ParseException
+			│
+			├─ GeneralSecurityException
+			│
+			├─ SQLException
+			│
+			└─ TimeoutException
+		当我们在代码中需要抛出异常时，尽量使用JDK已定义的异常类型。例如，参数检查不合法，应该抛出IllegalArgumentException。
+		大型项目可定义新的异常类型，保持合理的异常继承体系是很重要的，常见的作法是定义个BaseException作为根异常，
+		从其派生出各种业务类型的异常
+		
+		如果期待的运行代码没有发生异常一定一定一定加上try。
+		
+	
+	NullPointerException(空指针、NPE)：
+		俗称NPE，如果一个对象为null，调用其方法或字段就会产生空指针，它通常是由JVM抛出的。
+		指针源自c，java中没有指针。我们定义的变量实际上是引用，Null Pointer确切是Null Reference但两者区别不大。
+		处理NullPointerException：
+			首先，必须明确，处理空指针是种代码逻辑错误，原则上遇到早暴露、早修复，禁止使用catch隐藏编码错误：
+				catch(NullPointerException e)这样的是禁止的。
+		好的编码习惯可以极大降低空指针的产生，如声明变量为" "而不为null。
+		
+		java14新增的功能是空指针时显示报错详细信息，默认关闭，可给jvm添加参数启动：
+			java -XX:+ShowCodeDetailsInExceptionMessages Main.java
+			此命令的cmd窗口需要在项目文件下打开并保证和Main(也可以是其他需要运行类)处在同一级。
+			但是经过我测试发现只能在cmd窗口运行命令才会有详细的报错信息，ecplise(ide开发环境)没有。
+			
+	断言(Assertion)：
+		它是一种调试程序的方式，java中使用assert关键字实现断言。
+		assert x => 0;	这是条件，如果条件成立则正常输出，否则抛出AssertionError。
+		使用断言时可添加断言消息：assert x >=0 : "断言失败***"	
+		断言失败AssertionError会带上断言失败**便于调试，在断言后面添加冒号，后加上断言消息即可。
+		JVM是默认关闭断言指令，即使有assert关键字就自动忽略了。
+		执行断言的话要在命令行输入如下命令：
+			-ea:com.itranswarp.sample.Main
+				ea是-enableassertions简写
+				后面的路径是指定启用断言的类如果包路径后加上...不写类的话是再这个包启动断言。
+		实际上很少使用断言，更好是编写单元测试。
+		断言是一种调试方式，断言失败会抛出AssertionError，只能在开发和测试阶段启用断言。
+	
+	使用JDK Logging(日志)：
+		程序结果与预期不符时可使用logging，用来代替输出语句。
+			可以设置输出样式，避免自己每次都写"ERROR: " + var；
+			可以设置输出级别，禁止某些级别输出。例如，只输出错误日志；
+			可以被重定向到文件，这样可以在程序运行结束后查看日志；
+			可以按包名控制日志级别，只输出某些包打的日志；
+			可以……
+		日志会显示输出的详细信息如事件、类等等。
+		使用方法是，先声明对象Logger l=Logger.getGlobal();用对象调用级别，如：
+		l.fine("输出语句");
+		日志定义了7个级别限制：
+			SEVERE
+			WARNING
+			INFO
+			CONFIG
+			FINE
+			FINER
+			FINEST
+			info是默认级别，其以下是不会打印出来的，好处是调整级别就可以屏蔽很多调试相关的日志输出。
+			
+		logging再jvm启动时读取配置文件完成初始化，一旦运行main()方法就无法修改配置。
+		需要在JVM启动时传递参数-Djava.util.logging.config.file=<config-file-name>，uoyi
+		java标准库内置的logging使用不广泛。
+	
+	使用Commons Logging(通用日志)：
+		和logging不一样，它是第三方日志库，由Apache创建的日志模块。
+		特色是，可以挂接不同的日志系统后通过配置文件指定挂接的日志系统，默认情况下，自动搜索并使用Log4j
+		(另一个流行的日志系统)，如果没有找到log4j再使用JDK logging。
+		
+		第一步，通过LogFactory获取Log类的实例； 第二步，使用Log实例的方法打日志
+			Log log = LogFactory.getLog(Main.class);
+			log.info("start...");
+			log.warn("end.");
+		但是运行的时候会报找不到类的错误，因为它是第三方提供的，所以要提供个jar包(commons-logging-1.2.jar)，
+		将jar和运行类放在同一文件下，打开命令行，先编译运行文件如：javac -cp commons-logging-1.2.jar Main.java
+		编译成功后当前文件夹会多出个Main.class文件，
+		然后执行Main文件：java -cp .;commons-logging-1.2.jar Main
+		如果在Linux或macOS下运行：
+						  java -cp .:commons-logging-1.2.jar Main
+		上语句有部分：一个是.还有commons-logging-1.2.jar，使用;分割。
+		.表示当前目录，没有它，JVM不会在当前目录搜索Main.class,就会报错。
+		Commons Logging定义了6个日志级别(默认是info)：
+			FATAL
+			ERROR
+			WARNING
+			INFO
+			DEBUG
+			TRACE
+		使用commons logging，在静态方法中引用log，通常定义个静态变量类型：
+			  static final Log log = LogFactory.getLog(Main.class);
+		实例方法中通常定义实例变量
+			 protected final Log log = LogFactory.getLog(getClass());
+		
+		实例log获取方式有LogFactory.getLog(getClass());
+						 LogFactory.getLog(当前类.getClass());
+			第一个方式的好处是子类可以使用父类的log实例。
+		
+		由于java类动态特性，子类获取的log字段实际上相当于LogFactory.getLog(子类本类.class)，但却是从父类继承的，无需修改代码。
+		日志方法除了info(String)，info是日志打印输出。
+		还有重载方法info(String,Throwable)。
+		log.error(String,exception)打印异常。
+		Commons Logging是使用最广泛的日志模块；
+
+		Commons Logging的API非常简单；
+
+		Commons Logging可以自动检测并使用其他日志模块。
+				
+	
+	使用Log4j：
+		日志实现可以使用Log4j。它是一个组件化设计的日志系统，构造大致如下：
+			log.info("User signed in.");
+			 │
+			 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+			 ├──>│ Appender │───>│  Filter  │───>│  Layout  │───>│ Console  │
+			 │   └──────────┘    └──────────┘    └──────────┘    └──────────┘
+			 │
+			 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+			 ├──>│ Appender │───>│  Filter  │───>│  Layout  │───>│   File   │
+			 │   └──────────┘    └──────────┘    └──────────┘    └──────────┘
+			 │
+			 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+			 └──>│ Appender │───>│  Filter  │───>│  Layout  │───>│  Socket  │
+				 └──────────┘    └──────────┘    └──────────┘    └──────────┘
+		log4j输出一条日志时，它会自动通过不同的appender将同一条日志输出到不同目的地。
+			console：输出到屏幕；
+			file：输出到文件；
+			socket：通过网络输出到远程计算机；
+			jdbc：输出到数据库
+		日志输出过程中通过filter过滤哪些log需被输出，哪些不需要，如：仅输出ERROR级别的日志。
+		最后通过layout格式化日志信息，如自动添加日期、事件、方法名等信息。
+		实际使用时并不关心它的api，而是通过配置文件进行配置。
+		配置文件详情：https://www.liaoxuefeng.com/wiki/1252599548343744/1264739436350112
+		配置log4j较繁琐，配置完成后非常方便，凡是info(默认)级别的日志会自动输出到屏幕，
+		而error级别的，不但会输出到屏幕，同时会输出到文件。且日志文件达到指定大小，log4j
+		就会自动切割新的日志文件，最多保留10份(详情根据配置来)。
+		因为Log4j也是三方库，先下载jar包将3个jar包放入classpath中：
+			og4j-api-2.x.jar
+			log4j-core-2.x.jar
+			log4j-jcl-2.x.jar
+		因为commons logging会自动发现使用log4j，所以将commons的jar包也放入classpath。
+		打印日志按Commons Logging的写法即可。
+		
+		结：
+			通过Commons Logging实现日志，不需要修改代码即可使用Log4j；
+
+			使用Log4j只需要把log4j2.xml和相关jar放入classpath；
+
+			如果要更换Log4j，只需要移除log4j2.xml和相关jar；
+
+			只有扩展Log4j时，才需要引用Log4j的接口（例如，将日志加密写入数据库的功能，需要自己开发）。
+					
+			
+	使用SLF4J和Logback：
+		Commons Logging和Log4j一个负责日志API，一个负责日志底层，搭配使用非常便于开发。
+		SLF4J类似Commonslogging也是日志接口，logback类似log4j是日志实现。
+		commons的时候打印日志需要拼接字符串，slf4j的话就能使用占位符，飞创简洁，占位符表示为{}。
+		对比一下Commons Logging和SLF4J的接口：
+			Commons Logging							SLF4J
+			org.apache.commons.logging.Log			org.slf4j.Logger
+			org.apache.commons.logging.LogFactory	org.slf4j.LoggerFactory
+			区别就是log变成了logfactory。
+		使用方法是将jar包放到classpath下，jar名：
+			slf4j-api-1.7.x.jar
+			logback-classic-1.2.x.jar
+			logback-core-1.2.x.jar
+		然后使用SLF4J的Logger和LoggerFactory即可。和Log4j类似，我们仍然需要一个Logback的配置文件，
+		把logback.xml放到classpath下，配置如下：				
+			https://www.liaoxuefeng.com/wiki/1252599548343744/1264739155914176
+		
+		结：
+			SLF4J和Logback可以取代Commons Logging和Log4j。
+
+			始终使用SLF4J的接口写入日志，使用Logback只需要配置，不需要修改代码。
+			
+反射(Reflection)：			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 	
 	
 	
