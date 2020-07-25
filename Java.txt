@@ -2125,51 +2125,341 @@ Java核心类：
 				  └─────────┘
 		TreeSet和TreeMap要求一样，提娜佳元素必须正确实现Comparable接口，不实现的话，创建TreeSet时必须传入Comparator对象。
 		
-	使用Queue：
+	使用Queue(队列)：
+		队列，是一个先进先出的有序列表。和list的区别是：
+			list可在任意位置删除增加元素。
+			Queue只有两个操作：
+				将元素添加到队列尾部。
+				从队列头部取出元素。
+		队列接口Queue以下的方法：
+			List接口		Queue接口
+			boolean add()	boolean fooer()	添加元素到队列末尾
+			E remove()		E poll()	获取队首元素并从队列删除
+			E element()		E peek()	获取队首元素但不删除
+			int size()队列长度。
+			list和queue的获取首元素方法好像不能通用。
+			两个方法的行为是不同的：
+								throw Exception		返回false或true
+				add()			boolean offer()		添加元素到末尾
+				E remove()		E poll()			取队首元素并删除
+				E element()		E peek()			取队首元素但不删除
+				比如add添加失败的话可以选择抛出异常，offer添加失败的话返回false。
+				如果remove获取元素失败就会抛出异常，poll获取元素失败时就会返回null。
+				以上两个例子就是使用场景不同，根据需求使用list或queue还有以下的方法。
+				不要将null添加到队列中，否者pool时，很难确定取到了null还是队列为空返回的null。
+		LinkedList实现了List也实现了Queue，使用时当作list就获取list的引用，
+										   当作queue就获取queue的引用。
+		廖雪峰老师原话：始终按照面向抽象编程的原则编写代码，可以大大提高代码的质量。								   
+		结：
+			队列Queue实现了一个先进先出（FIFO）的数据结构：
+
+			通过add()/offer()方法将元素添加到队尾；
+			通过remove()/poll()从队首获取元素并删除；
+			通过element()/peek()从队首获取元素但不删除。
+			要避免把null添加到队列。	
+	
+	
+	使用PriorityQueue(优先队列)：
+		queue是先进先出的队列，但是数据都是进入尾部，PriorityQueue给元素设置优先级，
+		对此调用remove()或poll()，返回总是优先级高的元素，放入PriorityQueue元素要实现Comparable接口，
+		priorityQueue根据元素排序顺序决定优先级。
+		详细例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1265120632401152
+		结：
+			PriorityQueue实现了一个优先队列：从队首获取元素时，总是获取优先级最高的元素。
+
+			PriorityQueue默认按元素比较的顺序排序（必须实现Comparable接口），也可以通过Comparator自定义排序算法（元素就不必实现Comparable接口）。
+			
+	使用Deque(双队列)：
+		双队列允许两头进，两头出，Deque接口实现双端队列：	
+			既可以添加到队尾，也可以添加到队首；
+			既可以从队首获取，又可以从队尾获取。
 		
+		Queue和Deque进出队列方法：
+									Queue					Deque
+				添加元素到队尾		add(E e) / offer(E e)	addLast(E e) / offerLast(E e)			添加队尾
+				取队首元素并删除	E remove() / E poll()	E removeFirst() / E pollFirst()			取首并删除
+				取队首元素但不删除	E element() / E peek()	E getFirst() / E peekFirst()			取首不删除
+				添加元素到队首		无						addFirst(E e) / offerFirst(E e)			添加队首
+				取队尾元素并删除	无						E removeLast() / E pollLast()			取尾并删除
+				取队尾元素但不删除	无						E getLast() / E peekLast()				取首不删除
+		例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1265122668445536	
+		Deque扩展自Queeu。
+		所以Queue的add/offer方法Deque也能使用，但还是使用addFirst和offerFirst，因为能明确看出语句的作用。
+		Deque是接口，实现类有ArrayDeque和LinkedList。
+		LinkedLint是List、Queue、Deque。使用时用特定的接口引用，因为接口层次更高，并且接口本身定义方法代表特定用途。
+		！！！面向接口编程一个原则就是：尽量持有接口，而不是具体实现类。
+		
+		结：
+			Deque实现了一个双端队列（Double Ended Queue），它可以：
+				将元素添加到队尾或队首：		addLast()/offerLast()/addFirst()/offerFirst()；
+				从队首／队尾获取元素并删除：	removeFirst()/pollFirst()/removeLast()/pollLast()；
+				从队首／队尾获取元素但不删除：	getFirst()/peekFirst()/getLast()/peekLast()；
+				
+				总是调用xxxFirst()/xxxLast()以便与Queue的方法区分开；
+				避免把null添加到队列。
+			
+	使用Stack(堆栈)：
+		栈最关键的方法：
+			入栈	push()
+			出栈	pop()
+		栈方法：
+			boolean empty()	判断栈是否为空
+			E peek()	返回栈顶对象不移除
+			E pop()		返回栈顶对象并移除
+			E push(E item)	压入栈顶，添加数据
+			int search(Object o)	返回对象在栈的位置
+		search返回位置从栈顶开始计数，栈顶为1，不再栈顶元素返回-1，可通过此方法的返回值判断栈是否存在需要的元素。
+		推荐使用Deque接口实现栈。
+		
+		栈是后进先出的数据结构。
+		就像以下，和先进先出的区别就是将一段封死：
+			           ───────────────────────────────┐
+			  (\(\       (\(\    (\(\    (\(\    (\(\ │
+			 (='.') <─> (='.')  (='.')  (='.')  (='.')│
+			O(_")")    O(_")") O(_")") O(_")") O(_")")│
+					   ───────────────────────────────┘
+		数据是一直往栈中压入(push)，最后压入的元素最早弹出(pop)。
+		stack栈只有入栈和出栈操作：
+			把元素压栈：push(E)；
+			把栈顶的元素“弹出”：pop(E)；
+			取栈顶元素但不弹出：peek(E)。
+			
+		java中可用deque实现stack功能：
+			把元素压栈：push(E)/addFirst(E)；
+			把栈顶的元素“弹出”：pop(E)/removeFirst()；
+			取栈顶元素但不弹出：peek(E)/peekFirst()。
+			
+		stack没有单独接口，因为有个遗留类也叫stack，只能用deque接口模拟stack。
+		
+		JVM创建方法调用栈，调用一个方法时，将参数压栈后执行对应方法，
+		方法返回时，返回值压栈，调用方法通过出栈操作获得方法返回值。
+		方法调用栈有容量限制，嵌套调用过多会造成栈溢出，引发StackOverflowError。
+		
+		栈进制转换：https://www.liaoxuefeng.com/wiki/1252599548343744/1265121668997888#0
+	
+
+	使用Iterator(迭代器)：
+		迭代器就是在不知带具体内容的情况下能循环遍历集合的作用，我的理解。
+		要迭代集合时该集合要实现Iterator接口，编写Iterator时可用一个内部类实现Iterator接口，
+		此内部类可直接访问对应外部类的所有字段和方法。
+		
+		编写迭代器的例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1265124784468736
+		结：
+			Iterator是一种抽象的数据访问模型。使用Iterator模式进行迭代的好处有：
+
+			对任何集合都采用同一种访问模型；
+			调用者对集合内部结构一无所知；
+			集合类返回的Iterator对象知道如何迭代。
+			Java提供了标准的迭代器模型，即集合类实现java.util.Iterable接口，返回java.util.Iterator实例。
 			
 			
+	使用Collections(合类，集合类，工具类)：
+		Collections是JDK提供的工具类，提供一些静态方法，能更方便操作各种集合。
+		
+		我们一般看方法名和参数就可以确认Collections提供的该方法的功能。例如，对于以下静态方法：
+			public static boolean addAll(Collection<? super T> c, T... elements) { ... }	
+			addAll()方法可以给一个Collection类型的集合添加若干元素。因为方法签名是Collection，所以我们可以传入List，Set等各种集合类型。
 			
+		创建空集合：
+			Collections提供方法创建一个单元素集合。
+				创建一个元素的List：List<T> singletonList(T o)
+				创建一个元素的Map：	Map<K, V> singletonMap(K key, V value)
+				创建一个元素的Set：	Set<T> singleton(T o)
+			返回的单元素集合是不可变集合，无法香气中添加或删除元素。
+			也能用各个集合接口提供的of(T...)方法创建单元素集合，以下方法效果一样：
+				List<String> list1 = List.of("apple");
+				List<String> list2 = Collections.singletonList("apple");
+			实际上of更方便点，因为即可创建空集合，也能创建单元素集合，还可以创建任意个元素集合：
+				List<String> list1 = List.of(); // empty list
+				List<String> list2 = List.of("apple"); // 1 element
+				List<String> list3 = List.of("apple", "pear"); // 2 elements
+				依次类推，可创建任意的elements(元素)。
+		排序(sort)：
+			Collections可对List进行排序，排序会直接修改list元素位置，因此必须传入可变list：
+				Collections.sort(集合);
+		洗牌(shuffle)：
+			Collections提供洗牌算法，传入个有序list，随机打乱内部元素，相当于洗牌效果：
+				Collections.shoffle(集合);
+		不可变集合：
+			提供方法及那个可变集合封装成不可变集合：
+				封装成不可变List：List<T> 	unmodifiableList(List<? extends T> list)
+				封装成不可变Set： Set<T> 	unmodifiableSet(Set<? extends T> set)
+				封装成不可变Map： Map<K, V> unmodifiableMap(Map<? extends K, ? extends V> m)
+			这种封装是通过创建一个代理对象，拦截掉所有修改方法实现的：
+				不可变集合是，不能对此集合进行删除添加，效果如下
+				List<String> list = new ArrayList<>();
+				List<String> immutable = Collections.unmodifiableList(list);
+				immutable.add("orange"); // UnsupportedOperationException!
+			对不可变集合做出增删改会报UnsupportedOperationException异常。
+			但是对原始的可变集合进行增删是可以的，并且会直接影响封装后的不可变集合：
+				List<String> mutable = new ArrayList<>();
+				List<String> immutable = Collections.unmodifiableList(mutable);
+				mutable.add("orange");
+				直接对可变list进行添加删除就会影响不可变集合，而且查询可变还是不可变集合都能看到添加的信息。
+			想将可变集合封装成不可变，so，返回集合后，立即扔掉可变集合引用以保证后续操作不会意外改变原始操作
+			对象，从而造成不可变集合变化。
+
+		线程安全集合：
+			Collections还提供了一组方法，可以把线程不安全的集合变为线程安全的集合：
+				变为线程安全的List：List<T>  synchronizedList(List<T> list)
+				变为线程安全的Set： Set<T>   synchronizedSet(Set<T> s)
+				变为线程安全的Map： Map<K,V> synchronizedMap(Map<K,V> m)
+			从Java5开始引入更高效的并发集合类，所以上面几个方法没什么用了。
+		
+		结：
+			Collections类提供了一组工具方法来方便使用集合类：
+				创建空集合；
+				创建单元素集合；
+				创建不可变集合；
+				排序／洗牌等操作。
+	
+	Collection和Collections的区别：
+		Collection是集合体系最顶层，包含集合体系共性，简而言之就是集合上级接口，继承它的接口有List，Set等。
+		Collections是工具类，方法都是用于操作Collection，提供静态方法实现对各集合的搜索、排序、线程安全等操作。
+		
+	
+
+IO流：
+		io流是数据从内存到硬盘的输入或输出的操作，
+		input输入，将外部数据如硬盘中的文件读取到内存，或从网络读取数据到内存中。
+		output输出，将数据从内存写入到文件中，或从内存输出到网络中。
+		因为代码在内存中运行，数据也必须读到内存中，不论是byte数组又或是字符串等等。
+		因为内存有易失性特点，所以处理后的代码要以某种方式输出，像写入到文件中进行保存。
+		IO是一种顺序读写数据的模式，特点是单向流动，数据像自来水一样在水管中流动，所以称为IO流。
+		
+		IO的字节流(传输的自小单位是byte)：
+			InputStream(字节输入流)：从外部将数据读入到内存中。
+			OutputStream(字节输出流)：从内存中将数据输出到文件或网络中。
 			
+		IO的字符流(传输的自小单位是char)：
+			Reader(字符输入流)：从外部将数据读入到内存中。
+			Writer(字节输出流)：从内存中将数据输出到文件或网络中。
+				
+		Reader和Writer本质上是能自动编解码的InputStream和OutputStream。
+
 			
+		
+		使用Reader，数据源虽然是字节，但我们读入的数据都是char类型的字符，原因是Reader内部把读入的byte做了解码，转换成了char。
+		使用InputStream，我们读入的数据和原始二进制数据一模一样，是byte[]数组，但是我们可以自己把二进制byte[]数组按照某种编码转换为字符串。		
+		
+		同步异步：
+			同步IO，读写时代码必须等待数据返回后才继续执行后续代码，有点是编写简单，缺点是CPU执行效率低。
+			异步IO，读写时仅发出请求，后立即执行后续代码，有点是CPU执行效率高，缺点是代码复杂。
+			java包，java.io提供同步，java.nio提供异步。
+			InputStream、OutputStream、Reader、Writer都是同步IO的抽象类，具体实现类，文件为例，FileInputStream、FileOutputStream、FileReader、FileWrite。
 			
+			同步必须等待或主动询问IO是否完成，完成后才能继续执行其他操作。
+			异步不需要等待结构就可以执行其他操作，如常见的中断。
 			
-			
-			
-			
-			
-			
-			
-			
-			
-					
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			同步IO模型：
+				阻塞：用户进程发起一个IO操作，必须等待IO操作的完成，当真正完成IO操作后，进程才能运行。
+				非阻塞：用户进程发起IO操作后可返回做其他事情，但用户进程要时不时询问IO操作是否就绪，要求用户进程不停询问，从而引发不必要的CPU资源浪费。
+			异步IO模型：
+				阻塞：应用发起一个IO操作后，不等待内核IO操作完成，等内核完成IO操作后会通知应用程序。由于select函数本身的实现方式是阻塞的，所以该模型是阻塞IO型。
+				非阻塞：用户进程需要发起一个IO操作后立即返回，IO操作真正完成后，应用程序会得到IO操作完成的同志，此时用户进程子要对数据进行处理即可，不需要进行
+						实际的IO读写操作，因为真正的IO读写操作已经由内核完成了。
+		
+		javaIO分三个部分：
+			流式：IO主体部分
+			非流式：包含辅助流式部分类，file、RandomAccessFile、FileDescriptor等类。
+			其他类：文件读取部分与安全相关类，SerializablePermission类，以及本地操作系统相关的文件系统类：
+					FileSystem、Win32FileSystem和WinNTFlieSystem。
+		
+		IO中主要常用类：
+			 1. File（文件特征与管理）：用于文件或者目录的描述信息，例如生成新目录，修改文件名，删除文件，判断文件所在路径等。
+
+			 2. InputStream（二进制格式操作）：抽象类，基于字节的输入操作，是所有输入流的父类。定义了所有输入流都具有的共同特征。
+
+			 3. OutputStream（二进制格式操作）：抽象类。基于字节的输出操作。是所有输出流的父类。定义了所有输出流都具有的共同特征。
+
+			 4.Reader（文件格式操作）：抽象类，基于字符的输入操作。
+
+			 5. Writer（文件格式操作）：抽象类，基于字符的输出操作。
+
+			 6. RandomAccessFile（随机文件操作）：一个独立的类，直接继承至Object.它的功能丰富，可以从文件的任意位置进行存取（输入输出）操作。
+		
+		IO详细参考：https://blog.csdn.net/weixin_38964895/article/details/80885275?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522159549220519195162515173%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=159549220519195162515173&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_click~default-1-80885275.first_rank_ecpm_v3_pc_rank_v2&utm_term=IO&spm=1018.2118.3001.4187
+		结：
+			IO流是一种流式的数据输入/输出模型：
+
+			二进制数据以byte为最小单位在InputStream/OutputStream中单向流动；
+
+			字符数据以char为最小单位在Reader/Writer中单向流动。
+
+			Java标准库的java.io包提供了同步IO功能：
+
+			字节流接口：InputStream/OutputStream；
+
+			字符流接口：Reader/Writer。		
+				
+				
+	File对象：	
+		各种例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1298069154955297
+		file对象主要用来操作文件和目录，对文件进行存储等待。
+		创建file对象需要传入文件路径：
+			File f = new File("C:\\Windows\\notepad.exe");
+			路径是虚假的也不会报错。
+		构造file对象时，可传入绝对路径，也可传入相对路径，绝对路径以根目录开头的完整路径。
+		相对路径前加上当前目录jiu
+			绝对路径：C:\\。。。。。。什么的。
+			相对路径：.\\test\\tt	路径前加上当前目录如：C:\\test\\tt or C:\\faizi\\test\\tt
+					  ..\\test\\tt
+					  test\\tt
+			可用.表示当前目录，..表示上级目录
+		
+		file对象3种路径形式：
+			getPath()返回构造方法传入的路径。
+			getAbsolutePath()返回绝对路径。
+			getCanonicalPath()和绝对路径类似但返回规范路径，比如：
+				C:\test\.\a转换成规范C:\test\a
+		
+		文件和目录：
+			file对象既可以表示文件也可以表示目录，构建file对象不会导致任何磁盘操作所以，传入错误的文件或目录也没关系。
+			只有调用file对象某些方法的时候，才真正进行磁盘操作。
+			file方法：
+				isFile()判断file对象是否是文件
+				isDirectory()判断file对象是否是目录
+			另外file对象获取到文件时，可判断文件权限和大小：
+				boolean canRead()是否可读
+				boolean canWrite()是否可写
+				boolean canExecute()是否可执行
+				long	length()文件字节大小
+		
+		创建删除文件：
+			createNewFile()创建新文件。
+			delete()删除该文件
+			可创建临时文件：
+				createTempFile()创建临时文件。
+				deleteOnExit()JVM退出时自动删除该文件。
+		
+		遍历文件和目录：
+			file表示目录时，可使用方法列出目录下的文件和子目录名，并且listFiles()提供一系列重载方法，
+			可过滤不想要的文件和目录：
+				listFile()列出所有文件和子目录。
+			file表示一个目录的话可通过如下方法进行删除创建目录：
+				boolean mkdir()创建当前File对象表示的目录。
+				boolean mkdirs()创建当前file对象表示的目录，并将不存在的父目录也创建出来。
+				boolean delete()删除当前File对象表示的目录，当前目录必须为空才能创建成功。
+		Path：
+			此对象位于java.nio.file包下，path和file类似但操作更简单。
+			Paths.get(".", "project", "study");构造一个path对象此语句创建的路径是.\project\study。
+			path也能使用file的方法：
+				toAbsolutePath()	转为绝对路径
+				normalize()			转为规范路径
+				toFile()			转为File对象
+				for(Path p : Paths.get("..").toAbsolutePath())	直接遍历Path但是还没看明白(..)作用。
+			对目录进行复杂凭借、遍历等操作使用path对象更方便。
+		结：
+			Java标准库的java.io.File对象表示一个文件或者目录：
+
+			创建File对象本身不涉及IO操作；
+			可以获取路径／绝对路径／规范路径：getPath()/getAbsolutePath()/getCanonicalPath()；
+			可以获取目录的文件和子目录：list()/listFiles()；
+			可以创建或删除文件和目录。
+
+		
+	InputStream(输入流)：
+		
 			
 			
 			
