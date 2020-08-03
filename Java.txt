@@ -1,0 +1,2677 @@
+﻿Math.random()*10;	生成随机数*10，就是生成10以内不包括10，从0开始。
+
+
+JDK文件解析：
+	java安装bin目录下有很多可执行文件。
+	java：是jvm，运行java程序就是启动jvm，然后可以让jvm执行指定的编译后的代码。
+	javac：是java编译器，用于将java源码文件(.java后缀的文件)编译为java字节码文件(.class结尾)。
+	jar：用于将一组.class文件打包成一个.jar文件，便于发布。
+	javadoc：用于从java源码中自动提取注释并生成文档。
+	jdb：java调试器，用于开发阶段的运行调试。
+
+使用cmd运行java文件：
+	创建一个文本文件写个类，类名和文件名一致，文件后缀改为java。
+	先用javac将java文件编译成class字节码文件，然后使用java命令执行字节码文件
+	Hello.java  >>compile>>  Hello.class  >>execute>>  Run on JVM
+	source code	   (编译)	   byte code	 (执行)
+	(源码文件)				  (字节码文件)
+	
+	可执行文件javac是编译器，可执行文件java是虚拟机。
+	在保存java文件下打开cmd窗口，
+	javac Hello.java	编译java文件，将java编译成class
+	java  Hello.class	执行class文件
+	以上步骤是必须的，但是在java11后加入了新的功能，可以运行单个文件源码了！
+	也就是说可以直接运行java了，不需要使用javac编译成class文件了。
+	但是在实际项目中很少有不依赖第三方库的java源码，大多情况下无法直接运行java源码文件，因为它需要以来其他的库。
+	定义类的时候可以不写public也能正常编译，但是此类无法从命令行执行。
+	java入口规定方法必须是静态的，方法名必须为main，括号内参数必须是String数组。
+
+常用注释：
+	单行注释：//
+	多行注释：/*开头    */结尾
+	特殊多行：/**   	*/结尾，中间每行以*开头
+	
+	
+注：代码是按顺序执行的！！！	
+	
+java規定：
+	类名以大写开头，方法名小写开头驼峰规则。
+	public为访问修饰符，static是修饰符。
+	方法上加上DOTO是等待后续修改或编写的方法。
+
+基本数据类型：
+	整数类型：byte、short、int、long
+	浮点类型：float、double
+	字符类型：char
+	布尔类型：boolean
+	计算机内存最小储存单元是字节(byte)，一个字节是一个8位二进制数，即8个bit(位)。
+	它的二进制表示范围从00000000~11111111，换算成十进制0~255，换算成十六进制是00~ff。
+	(身为数学渣子的我，从廖老师网站搬过来的)
+	
+	内存单元从0开始编号，称为内存地址，每个内存单元可看作是一间房间，内存地址是门牌号。
+	一个字节是1byte，1024字节是1k，1024k是1m，1024m是1g，1024g是1t，一个拥有4t内存的计算机字节数量：
+	4T = 4 x 1024G；
+	   = 4 x 1024 x 1024M；
+	   = 4 x 1024 x 1024 x 1024K；
+	   = 4 x 1024 x 1024 x 1024 x 1024；
+	   = 4398046511104；
+	
+	不同数据类型占用的字节也不一样：
+	byte   	1	  整型
+	short  	2	  整型
+	char   	2	  字符型
+	float  	4	  浮点
+	int	   	4	  整型
+	long   	8	  整型
+	double 	8	  布尔
+	因为不了解数学，一下只做了解：
+		java定义的带符号的整型。最高位的bit表示符号位(0位正，1为负)
+		浮点类型是小数，因为小数点可以向前或向后浮动，所以称为浮点，对于float浮点类型数值后需加上f，如1.33f。
+		布尔只有true和false两个值，数值比较运算也可替代true和false如：false1=1>2	true=1<2。
+		char只能保存一个字符使用单引号''。
+		String字符串引用类型使用双引号""。
+		引用类型类似C语言的指针，内部存储一个地址，指向某个对象在内存中的位置涉及类和数据库(数据库学的细碎后面再说)。
+		常量需要在变量前加上final修饰符，常量名通常全部大写，常量值是不能被改变的，枚举enum相似，只是枚举定义的是类。
+	
+	var关键字：有事类型名过长可将变量的类型写为var：var s = new Shool(); 效果等同于  shool s = new shool();
+			   因为编译器会根据赋值语句自动推断变量的类型。
+	变量存在作用域即作用范围，在同一个或同一个中的{}花括号中生效，如果超出范围，编译器会报错。
+	
+	整数运算：
+		java的整数遵循四则运算规则，可以任意嵌套小括号，括号内优先运算。
+			
+		自增减：++n的话表示先加1再引用n，n++则相反是先引用再加1。
+		移位运算二进制中，左移是乘2，右移是除2。
+		位运算：
+			&：相同为1，不同为0。
+			|：任意为1，结果为1。
+			~：0，1互换，输入0时结果为1，反之亦然。
+			^：两个数值不同为1，否则为0。
+		运算符优先级：
+					()
+					! ~ ++ --
+					* / %
+					+ -
+					<< >> >>>
+					&
+					|
+					+= -= *= /=
+		
+		注意++写在前面和后面计算结果是不同的，++n表示先加1再引用n，n++表示先引用n再加1。
+		不建议把++运算混入到常规运算中，容易自己把自己搞懵了。(搬运廖老师的原话，谁做项目写++n，n++的钻简直牛角尖，虽然是因为我不会)。
+		自动类型转换发生在字节低转为字节高。
+		强制类型转换字节高转为字节低，但是字节高转为字节低时会损失精度，导致结果不准确。
+	浮点数运算：
+		浮点数只能做加减乘除运算，不能做位运算和移位运算。
+		浮点数虽然范围大但是常常无法精准表示。
+		0.1在计算机中无法精确表示，因为十进制0.1转成二进制时无限循环小数。
+		如果小数强转为整数类型的话，小数.后的值会被舍弃如，12.3和12.7皆为12。
+		整数和浮点进行运算的时候整数自动转为浮点类型。
+	布尔运算：
+		只有true和false	；
+			比较运算符：>，>=，<，<=，==，!=
+			与运算 &&
+			或运算 ||
+			非运算 !
+		关系运算符的优先级从高到低依次是：
+			!
+			>，>=，<，<=
+			==，!=
+			&&
+			||
+		布尔里有一种短路运算：
+			x1 && x1 如果x1为false时x2不再进行运算，第一个值为false时不再进行运算直接返回false。
+			如果x1为true时，第二个值错误不能进行运算时，会报错，这样来说短路也相当于是一种保护机制。
+		三元运算符：
+			表达式：成功？失败
+			意思是如果a>b的话，就显示：后的语句，如果a<b的话就显示？后的语句。
+	字符和字符串：
+		字符时基本数据类型，是charrcter的缩写，保存一个unicode字符。
+		查看字符在unicode中的编码只需要将char赋值给int即可。
+		字符串常见的转义字符：
+			\" 表示字符"
+			\' 表示字符'
+			\\ 表示字符\
+			\n 表示换行符
+			\r 表示回车符
+			\t 表示Tab
+			\u#### 表示一个Unicode编码的字符
+			可以使用+将多个""进行连接效果和一个""一样
+			如果使用+连接字符串和其他数据类型会将其他数据类型自动转为字符串再进行连接。
+		从java13开始使用"""...."""表示多行字符串和/*...*/效果差不多。
+		而且字符串是不可变的，变的是指向：
+			如果创建了两个s字符串
+				String s = "aa";
+				String s = "bb";
+				会在内存中创建两个变量aa和bb，s只是一个指针的效果，s="aa";时候虚拟机创建了aa字符串，
+				然后用变量s指向它，第二次s="bb";时虚拟机创建bb并且s指向它。
+				当然如果a="aa";已经创建aa变量了，b="aa";时b也只是去内存中指定了aa而已，也就是说aa在内存中只创建了一次。
+			null和""是有区别的，null是没有值，"是为空的有效字符串。
+	数组：
+		数组可以是值类型或引用类型，但是数组本身是引用类型。
+		多个相同的数据类型可以使用数组进行保存。
+		int [] name = new int[2]; 第二个[]中的数字为数组的个数，数组下标为0,并且规定几个必须创建几个。
+		name[0] = 1;
+		name[1] = 2;
+		name.length使用此语法获取数组大小。
+		name[1]查看下标为1的数据，输入几查看几。
+		int [] name = new int [] {1,2,3,4}; 使用此方式不用指定数组大小，输入保存的数据编译器自动推算数组大小。
+		int [] name = {1,2,3,4}; 这是最简洁的创建数组方式。
+		
+流程控制：
+	System.out表示输出流	System.in表示输入流
+	语句从上到下按顺序执行。
+	输出语句：System.out.print();	输出后不换行。
+			  System.out.println(); 输出后换行。
+			  ecplise中输入sout和sys使用alt+/快捷键快速生成。
+			  占位符	说明
+				%d		格式化输出整数
+				%x		格式化输出十六进制整数
+				%f		格式化输出浮点数
+				%e		格式化输出科学计数法表示的浮点数
+				%s		格式化字符串
+	输入：先创建Scanner对象。
+		Scanner scanner = new Scanner(System.in);
+		scanner.nextLine();		输入字符串
+		scanner.nextInt();		输入整数
+	
+	switch语句：使用多重if判断的话，switch更加清晰。
+		switch(){
+		case 1:
+			break;
+		case 2:
+			break;
+		default:
+		}
+		如值=1就进入第一层，因为case具有穿透性，不写break的话，会将下一层也输出，如果下一层也没break，就滚雪球了。
+		default是默认值，case的顺序不影响逻辑。
+		switch条件值也可以是字符串或者枚举。
+		从java12开始switch语句更加简洁化，使用模式匹配保证只有一条路径会被执行，并且不需要break。
+		switch(标准值){
+			case "条件值" -> 语句 ;
+			case "条件值" -> 语句 ;
+			case "条件值" -> {语句 };
+			default ->	语句;
+		}
+		以上是java12后的语句，如果写逻辑判断等有多个语句的话可用{}进行扩盖，并且新语法使用->。
+		可以将swithc的值作为变量进行设置int xx = switch(){}
+		可以case"123","312"使用,设置多个条件。可以使用yield返回一个值作为返回值。
+	while循环：根据条件做循环就按，条件满足时退出循环
+		while(条件表达式){
+			循环语句
+			值++；
+		}
+		开始时先判断条件表达式，如果位true就运行，false就终止跳出while循环。
+		while必须在最底层使用条件值++，否则无限循环
+	do{
+		语句;
+		值++;
+	}while(条件表达式);
+	dowhile较while不同，
+	while先判断再执行，dowhile先执行再判断。
+	
+	for循环：最便利的循环之一，在每次循环后更新计数器计数器通常为1不需要写n++。
+		for(int i=0; i<=100; i++){
+			i<=100是条件；
+			i++;是自增；
+			int i=0;声明一个计数器并指定默认值；
+		}
+		对计数器变量的修改尽量在for循环中。
+	for each使用此循环遍历数组,也能遍历输出map，list等集合。
+		int [] a={1,3,5,7,9};
+		for(int b : a){
+			 System.out.println(b);
+		}
+		
+		for循环可以访问数组索引，for each直接迭代每个数组元素，无法获取索引。
+		
+		在while和for中都能使用break和comtinue语句(switch也能用)
+		在循环中判断加上break，当数值到达xx时就break，
+		注意break只挑出当前那层循环，如果有两层在最里层加上break，就是跳出里层循环，外层循环不会结束。
+		comtinue提前结束本次循环，comtinue后的语句不执行，然后继续循环。
+	
+数组：Arrays.toString(数组名);快速打印数组内容
+	  Arrays.sort(数组名);对数组进行排序，但实际上时修改了数组本身。
+	冒泡排序的特点，每一轮循环结束后，最大的一位被交换到末尾，so下一轮就可以忽略最后的数，
+	每一轮循环都比上一轮循环结束位置靠前一位。
+	for(int i=0;i < ns.length - 1;i++){
+		for(int j=0;j < ns.length-i-1;j++){
+			if(ns[j] > ns[j+1]){
+				int tmp = ns[j];
+				ns[j] = ns[j+1];
+				ns[j+1] = tmp;
+			}
+		}
+    }这是冒泡排序的例子，降序只需要将if中的>换成<。
+	还有二维数组：
+		int[][] ns = {
+            { 1, 2, 3, 4 },
+            { 5, 6, 7, 8 },
+            { 9, 10, 11, 12 }
+        };酱紫的，二维数组要使用两个[][]，使用，隔开每个数组
+		查看特定数组的某位数时ns[0][0]，意思是下标为0的数组中下标为0的数字。
+		二维数组.length时显示的是二维数组的长度。
+		ns[0].length查看下标为0数组的长度。
+		Arrays.deepToString();能打印二位数组。
+		还有一种三维数组，就是二维数组的数组。
+		int[][][] ns = {
+			{
+				{1, 2, 3},
+				{4, 5, 6},
+				{7, 8, 9}
+			},
+			{
+				{10, 11},
+				{12, 13}
+			},
+			{
+				{14, 15, 16},
+				{17, 18}
+			}
+		};
+	
+
+命令行参数：
+	程序入口时main方法，main方法可以接受一个命令行参数，它是String[]数组，此命令行由jvm接受用户输入传给main方法。
+
+
+面向百度编程：
+	class(类)
+	instance(实例、类)
+	method(方法)
+	field(字段)
+	面向过程编程：将模型分解成一步一步的过程，比如洗一个TODO任务：
+					1.读取文件
+					2.编写TODO
+					3.保存文件
+	面向对象编程：通过对象的方式，将现实世界映射到计算机模型的一种编程方式。
+					基本概念：类、实例、方法。
+					面向对象实现方式：继承、多态。
+					java本身提供机制：package、classpath、jar。
+					java标准库提供核心类：字符串、包装类型、javabean、枚举、常用工具类。
+	
+				类定义的是一种抽象的概念，如电脑是类，那么和电脑相关的实例都可放在其中。
+				面向对象主要就是class(类)和instance(实例、对象)
+				class是对象模板，定义如何创建实例，so，class本身就是一种数据类型。
+				instance是对象实例，instance是根据class1创建的实例，可以创建多个instance，每个instance类型相同，但属性可能不同。
+				
+				将一组数据汇聚到对象上就是数据封装。
+				Student s = new Student();
+				创建了一个实例，通过变量s指向它，Studnet s是创建student的变量s，new Student()是创建实例。
+				有了这个实例就能通过变量操作实例，s.字段。来使用studnet中封装的字段。
+				如果实例类型一样，变量名不一样那么在调用字段的时候在内存中有独立的空间，互不干扰。
+				指向instance的变量都是引用变量。
+	方法：一个class可以含多个field，如果field使用public修饰暴露给外部会破坏封装性。
+			可以使用private进行修饰拒绝外部访问，private是私密的，public是公用的。
+			使用private的话，可用get、set方法让外部获取字段，外部用过调用get方法获取字段，set方法修改字段。
+			也可以在set中加上判断，对输入值进行判断是否符合条件使输入值更加严谨。
+		定义方法语句：
+			修饰符 方法返回类型 方法名(方法参数列表) {
+				若干方法语句;
+				return 方法返回值;
+			}	没有特定情况下可省略return。
+			可以在其中的方法封装一个类的对外接口，调用方不需要也不用关心实例的方法中做了什么操作。
+			
+		在方法中可使用一个隐含变量this，它始终指向当前实例，so，通过this.field就能访问当前所在实例的字段。
+		若没有命名冲突就可省略this，如歌有局部变量和字段冲突，那么局部变量优先级更高，必须加上this。
+		
+		方法参数：
+			方法可以报包含多个参数，方法参数用于接收传递给方法的变量值，调用方法时，必须严格按照参数设定的定义传递。
+		
+		可变参数：
+			相当于数组类型public void setNames(String... names) ，那么调用的时候就可以写成，
+			g.setNames("Xiao Ming", "Xiao Hong", "Xiao Jun")。
+			所以完全可以将可变参数改为数组类型。
+			
+		参数绑定：
+			调用方将参数传递给实例方法时，调用传递值会按照参数位置进行绑定。
+			基本参数类型传递，调用方法值的复制，双方各自的后续修改互不影响。
+			但引用类型参数的传递，调用方的变量，和接收方的参数变量，指向的是同一对象，
+			双方任意一方对此对象的修改都会影响对方(因为指向的同一对象)。
+			
+	构造方法：
+		在创建实例的时候就将内部字段全部初始化为合适的值。
+		创建类的时候，默认创建一个隐式的类的构造方法，默认的构造方法是无参的没有返回值的。
+		如果自定义一个构造方法那么编译器就不再创建默认构造方法，这个时候我们就要自己创建无参构造。
+		因为如果你自定义有参构造，那么实例化对象的时候构造方法中没有参数就会报错。
+		没有在构造方法中初始化字段时，应用类型字段默认null，int默认0，布尔默认false。
+		可以设置多个不同参数的构造方法来对应不同的参数需求。
+		一个构造方法可调用另一个构造方法，使用this()；
+	
+	
+	继承(extends)：
+		java中只允许单继承，但是可以无限单继承，a继承b继承c继承d.....依次类推。、
+		java中创建的类会默认继承object类，object是没有父类的。
+		b类继承另a类的时候，b能使用a类的方法和属性，增加程序扩展性，使用extends实现继承。
+		b继承a时，b就拥有了a的所有功能，也能为b添加独有的功能。
+		术语中被继承的类被称为：
+			超类(super class)
+			父类(parent class)
+			基类(base class)
+		继承的类又称为：
+			子类(subclass)
+			扩展类(extended class)
+		但是子类中不能有和符类相同的字段。
+		继承的特点是子类无法访问符类的private字段或private的方法。这样的话继承的作用就被削弱了。
+		这样的话，就需要将private改为protected，被protected修饰的字段或方法可以被子类访问。
+		
+		如果说this表示本类的话，那么super就是表示父类。类加载时会先加载构造方法，super()表示父类构造方法。
+		使用父类字段时super.，而且如果有父类的话会先加载父类的信息再加载子类的。
+		
+		向上转型(upcasting)：子类类型安全转为父类类型称为向上转型,向上转型时将子类类型安全地变为更加抽象的父类。
+							子类 子 = new 父类();	向上转型
+		向下转型(downcasting)：将父类类型强制转换为子类类型，为避免出错，java提供instanceof操作符。
+							可以判断变量所指向的实例是否是指定类型或此类型的子类，如果引用变量为null，
+							那么对让你和instanceof的判断都为false。
+							父类 父 = new 子类();  or  父类 父 = (父) new 子类();
+						从java14后判断instanceof后可直接转型为指定变量，避免再次强制转换。
+	继承and组合(is and has):				
+		不能继承没有is关系的类，但是可以使用组合，就是a(子)可以持有一个b的实例。
+		组合是has的关系。
+		如果父类不想子类对父类某些方法或字段进行重写，使用final进行修饰，被final修饰的是常量并且不能修改的。
+		如果一个类不想被继承也可使用final进行修饰，被final修饰的不能被继承。
+			final修饰符有多种作用：
+
+			final修饰的方法可以阻止被覆写；
+
+			final修饰的class可以阻止被继承；
+
+			final修饰的field必须在创建对象时初始化，随后不可修改。
+		
+	重载(Overload)：
+		一个类中一系列方法功能相同，参数不同，就可以及那个这组方法编程同名方法，即重载。
+		方法名相同，参数不同，是为重载(Overload)。重载返回值通常相同。
+		(个人感觉重载和创建多个构造方法差不多)
+	重写(Override)：子类定义一个和父类方法名一样的方法，是重写(Override)。
+		重写的话方法名、参数、返回值相同。
+		
+	多态：		
+		多态指的是针对某个类型的方法调用，其真正执行的方法取决于运行时期实际类型的方法。
+		多态特性是运行期才能动态决定调用的子类方法，针对某个类型调用某个方法，执行的实际方法可能是某个子类的重写方法。
+		多态具有一个非常强大的功能，就是允许添加更多类型的子类实现功能扩展，却不需要修改基于父类的代码。
+		Java的方法调用总是作用于运行期对象的实际类型，这种行为称为多态；
+		
+	抽象类：
+		父类方法本身不需要实现任何功能，只是为了定义方法签名，让子类进行实现，这就是抽象方法。
+		抽象方法使用abstract进行修饰，类名也用abstract进行修饰。
+		抽象方法本身的作用是定义一个规范，子类进行方法重写。
+		子类继承抽象类，必须重写抽象类方法否则子类还是抽象类。
+		抽象方法也使得程序扩展性更高，耦合性降低。
+	
+	面向抽象编程：
+		面向抽象的本质是抽象类只定义规范。
+		不需要子类就能实现业务逻辑。
+		具体业务逻辑由不同子类进行实现，调用者不必关心是谁实现。
+	
+	接口(interface)：
+		抽象类的本质是定义规范，保证所有子类都有相同的接口实现，从而体现多态。
+		接口和抽象类的区别是：
+			接口所有方法必须都是抽象方法，实现接口implements关键字。
+			抽象类可以有抽象方法和普通方法，继承类extends关键字。
+		接口中只能有抽象方法，只能！！！
+		
+		java只能继承一个类但是可以实现无数个接口。
+		
+		抽象类和接口的对比如下：
+						abstract class			interface
+			继承		只能extends一个class	可以implements多个interface
+			字段		可以定义实例字段		不能定义实例字段
+			抽象方法	可以定义抽象方法		可以定义抽象方法
+			非抽象方法	可以定义非抽象方法		可以定义default方法
+												default是默认方法将public改为default。
+			
+	术语：
+		接口分java和编程：
+			java接口是指interface中全是抽象方法的定义。
+			编程接口是指接口规范，方法签名、数据格式、网络协议等。
+	
+	静态字段静态方法：
+		static修饰字段或方法是为静态，静态字段只有一个共享空间，所有实例都会共享此字段。
+									  普通字段都会有独立的空间，每个实例的同名字段互不影响。
+		
+		普通实例方法需要通过实例变量，调用静态方法则不需要，通过类名即可：类名.方法名。
+		因为静态方法属于class，so静态方法内部无法访问this变量，也无法访问实例字段只能访问静态字段。
+		静态方法常用于工具类：
+			Arrays.sort();
+			Math.random();
+			也用于辅助类，如main();
+		interface因为是抽象类不能定义实例字段，但可以有静态字段而且必须为final类型。
+		
+	包：
+		jvm执行的时候，只看完整类名，so只要报名不同，类就不同。
+		包作用域：
+			位于同一包内，不用public、protected、private的字段和方法就是包作用域。
+		import：在使用其他class时需要导入包路径，但是创建实例的时候大部分都已经自动生成了。
+			·	如果import com.* 就是将这个包下所有class都导入进来。
+		
+	作用域：
+		第一要点是，代码从上到下执行，第一行无法访问第二行的变量。
+		不能直接访问不同类的变量等等。
+	
+	模块：
+		.class是jvm看到最小可执行文件，大型程序需要很多class，不便管理，所以jar文件就是class的容器。
+		java9之前开发程序时除了自己的app.jar还需要一堆第三方jar包。
+		jvm自带的标准库rt.jar不能写到classpath中不然会干扰jvm正常运行，漏写了某个运行用到的jar，
+		那么运行时可能抛出ClassNotFoundException，jar只是存放class的容器，并不关心class之间的依赖。
+		java9开始引入模块，为了解决依赖的问题，如果a.jar必须依赖b.jar才能运行，应该给a.jar加点说明，让他
+		再编译和运行的时候自动定位到b.jar,这种依赖关系的class容器就是模块。
+		
+		从java9开始java库将rt.jar拆分成几十个模块，以.jmod扩展名标识，在$JAVA_HOME/jmods目录下。
+			每个.jmod都是一个模块，模块名就是文件名。如java.base就是java.base.jmod，模块之间的
+			关系已经写到模块内的module-info.class文件，所有模块之间莫简介依赖java.base,但是它不
+			依赖任何模块，可将它看作成根模块。
+		将一堆class封装成jar需要打包，将class封装成模块不但要打包号要写入依赖关系。
+		
+		创建模块：
+			如在src下创建module-info.java文件，这是模块描述文件
+			运行java需要jar，jdk提供了jlink命令，只使用程序需要的jar：
+				$ jlink --module-path hello.jmod --add-modules java.base,java.xml,hello.w件是b明确导出可访问的包。
+	
+	orld --output jre/
+			权限访问：
+				class访问权限只在一个模块内有效，模块之间，a要访问b的某个class，必要条件是b明确的到处可访问的包。
+				只有声明导出的包外部代码才允许访问。
+				如想访问com.itranswarp.sample.Greeting必须导出(exports)exports com.itranswarp.sample;
+
+
+
+Java核心类：
+	字符串
+
+	StringBuilder
+
+	StringJoiner
+
+	包装类型
+
+	JavaBean
+
+	枚举
+
+	常用工具类
+	
+	字符串和编码：
+		
+		String：是引用类，本身也是class。编译器对其有特殊处理可用"..."表示一个字符串。
+				在其内部是通过char[]数组显示的如下：
+				String s = new String(new char[]{'h','e','l','l','o'});
+				字符串最重要的特点就是字符串不变，是通过内部的private final char[]以及没有任何修改char[]方法实现的。
+			比较：==一般表示数值，字符串比较必须使用equals()，忽略大小写使用equalsIgnoreCase()方法。
+				
+			提取、搜索子串：
+				搜索："字符串".indexOf("串");	显示串的下标
+				      "字符串串".lastIndexOf("串");		显示最后一个串的下标
+					  "字符串".startsWith("字符");		判断是否从字符开始 返回布尔
+					  "字符串".endWith("符串");			判断时候以符串结尾 返回布尔
+					  
+				提取："字符串".substring(下标); 提取指定下标及以后的字符。
+					  "字符串".substring(1,2);  只提取1，2下标的字符。
+	
+			去除首位空白字符：
+				使用trim()一处字符串首尾空字符,如:\t, \r, \n;
+				trim()并没有改变字符串内容,二十返回一个新字符串。
+				strip()也可以移除首位空字符,但是中文空格的\u3000也会被移除。
+			判断是否为空：
+				"".isEmpty();		空字符串返回true,否则为false如:"  "
+				" \n".isBlank();	含空白字符串返回true否则false如:"hello"
+			替换字符串：
+				变量名.replace('e','a');		将变量中的所有e改为a
+				正则表达式替换：
+					String s = "A,,B;C ,D";
+					s.replaceAll("[\\,\\;\\s]+", ","); // "A,B,C,D" 将匹配的子串统一替换为，。
+			分割字符串：
+				split()方法，传入正则表达式，如下：
+					String s = "A,B,C,D";
+					String[] ss = s.split("\\,"); // {"A", "B", "C", "D"}
+			拼接字符串：
+				join()静态方法进行拼接，如下：
+					String[] arr = {"A", "B", "C"};
+					String s = String.join("***", arr); // "A***B***C"
+
+			格式化字符串：
+				formatted()和format静态方法传入其他参数替换占位符生成新的字符串：
+					String s = "Hi %s, your score is %d!";
+					System.out.println(s.formatted("Alice", 80));
+					System.out.println(String.format("Hi %s, your score is %.2f!", "Bob", 59.5));
+				后面有几个占位符就传几个参数，参数类型要和占位符一致，如果不确定的话使用%s因为其可以显示任何数据类型。
+					%s：显示字符串；
+					%d：显示整数；
+					%x：显示十六进制整数；
+					%f：显示浮点数。
+			类型转换：
+				将任意基本类型或引用类型转换为字符串，使用静态方法valueOf(),这是重载方法，编译器会根据适合的参数选择合适的方法。
+					String.valueOf(123);
+					String.valueOf(23.23);
+					String.valueOf(true);
+					String.valueOf(new Object());
+				将字符串转为其他类型需要根据实际情况：
+					int n = Integer.parseInt("123");	int类型
+					boolean b1 = Boolean.parseBoolean("true");  Boolean类型
+					将字符串对应的系统变量转换为integer，Integer是int的包装类
+						Integer.getInteger("java.version"); // 版本号，11
+					string和char互相转换：
+						char[] cs = "Hello".toCharArray(); // String -> char[]
+						String s = new String(cs); // char[] -> String
+	
+				因为String的不变特性，如果传入对象可能改变，就需要复制而不是直接引用。
+		
+		字符编码：
+			简介在这里：https://www.liaoxuefeng.com/wiki/1252599548343744/1260469698963456
+			因为不同编码的字符集是不一样的，所以统一发布了Unicode编码，将主要语言统一就不会发生冲突了。
+			UTF-8是容错力强传输过程中某些字符出错不影响后续字符，因为是靠高字节位确定字符是几个字节的，常用于传输编码。
+				byte[] b1 = "Hello".getBytes(); // 按系统默认编码转换，不推荐
+				byte[] b2 = "Hello".getBytes("UTF-8"); // 按UTF-8编码转换
+				byte[] b2 = "Hello".getBytes("GBK"); // 按GBK编码转换
+				byte[] b3 = "Hello".getBytes(StandardCharsets.UTF_8); // 按UTF-8编码转换
+				以上转换编码后就变成byte类型了。
+				将byte转为String：
+					byte[] b = ...
+					String s1 = new String(b, "GBK"); // 按GBK转换
+					String s2 = new String(b, StandardCharsets.UTF_8); // 按UTF-8转换
+			注：java的String和char在内存中总是以Unicode表示。
+	
+		小结：
+			java字符串String是不可变对象。
+			字符串操作不改变原字符内容，而是返回新字符。
+			常用的字符串操作：提取字符串、查找、替换、大小写转换等。
+			java使用unicode编码表示string和char。
+			转换编码就是将string和byte[]转换，需要指定编码。
+			转为byte[]优先考虑UTF-8编码。
+	
+	StringBuilder：
+		可以使用+拼接字符串但是用for循环拼接字符串的话，每次循环创建新的字符串，抛弃旧的
+		大部分都是临时对象，浪费内存影响GC(垃圾回收)效率。
+		可使用StringBuilder，可变对象可以预分配缓冲区，所以新增字符串时不会创建新的临时对象。
+		(当然拼接的时候还是要使用for，只是将string类型改为StringBuilder类型罢了)
+		也可以进行链式操作：
+			var sb = new StringBuilder(1024);
+				sb.append("Mr ")
+				  .append("Bob")
+				  .append("!")
+				  .insert(0, "Hello, ");
+			System.out.println(sb.toString());
+		StringBuffer是java早期的StringBuilder线程安全版本，通过同步保证多个线程操作StringBuffer也是安全的，
+		但是同步会让执行速度下降。
+		StringBuilder和StringBuffer接口完全相同，现在没有必要使用StringBuffer。
+	
+	StringJoiner:
+		new StringJoiner(",");就是遍历数组的时候中间值与值之间加上，号，在使用stringjoiner的变量.add添加值即可。
+		如果需要在值首位添加数据new StringJoiner(",", "头", "尾");	toString();是转为string类型。
+		不指定首尾时可用静态方法String.join()更方便，因为在内部使用StringJoiner拼接字符。
+		String.join(",", 数组名);	自动进行拼接
+		
+		
+	包装类：
+		java数据类型两种：基本：byte、short、int、long、boolean、float、double、char
+						  引用：所有class和interface类型。
+			引用类型能为null，基本类型不行。
+			将基本类型视为引用的话，用到包装类。
+			以下时基本类型的包装类，所有的包装类都是不变类：
+				boolean			java.lang.Boolean
+				byte			java.lang.Byte
+				short			java.lang.Short
+				int				java.lang.Integer
+				long			java.lang.Long
+				float			java.lang.Float
+				double 			java.lang.Double
+				char			java.lang.Character
+			
+			int和integer是可以互换的，编译器自动在int和integer之间转型。
+			直接将int变为integer的复制方式，为自动装箱(Auto Boxing)，integer转为int的就是自动拆箱(Auto Unboxing)。
+			自动拆装箱只发生在编译阶段，是为了少写代码。但会影响代码执行效率，编译后的class严格区分基本和引用的。
+			自动拆箱时可能报NullPointerException。
+			
+			包装类是引用类型比如integer所以比较时用equals()。
+			integer不可变类，如设置了值为1，第二次在设置变量b=2，那么值还是1。此例子不标准
+			integer.valueOf()对于较小的数，始终返回相同的实例所以==恰好为true。
+			integer==为true是因为，valueof返回之前，进行判断当前的值是否在-128-127之间，
+			如果存在就直接返回引用不用重新开辟空间，
+			如果不存在就创建一个新对象，
+			利用缓存提高车光绪执行效率节约内存，但是还是尽量使用equals进行数值比较。
+			可能integer.valueof可能始终返回同一个integer实例，所以：
+				Integer n = new Integer(数值);
+				Integer n = Integer.valueOf(数值);
+				第二个好一点因为第一个总是创建新的实例，而且第二个将内部优化留给integer实现者去做。
+			能创建新对象的静态方法称为静态工厂方法。
+			Integer.valueOf就是，它尽可能返回缓存实例以节省内存。
+			创建新对象时，优先选用静态工厂而不是new操作符。
+		进制转换：
+			Integer的静态方法：
+				parseInt()将字符串解析成一个整数
+			将整数格式化成指定进制的字符串：
+				Integer.toString(100); 			"100",表示为10进制
+				Integer.toString(100, 36); 		"2s",表示为36进制
+				Integer.toHexString(100);  		"64",表示为16进制
+				Integer.toOctalString(100); 	"144",表示为8进制
+				Integer.toBinaryString(100);  	"1100100",表示为2进制
+			顺带一提String好像在内存中只用二进制显示。
+			程序的重要原则就是数据存储和显示分离。
+			整数和浮点的包装类型都继承自number，so可直接通过包装类型获取各种基本类型。
+	
+	JavaBean(组件):	
+		封装实体类为了让外部访问设置值，而创造的getset方法，这种方法称为javabean。
+		boolean比较特殊读方法get变成is(具体是get还是is根据情况来)
+		ecplise的getset的快捷键：Shift+Alt+S；或者 右键Source里面的getset。
+	枚举JavaBean属性：
+		例如：
+		BeanInfo info = Introspector.getBeanInfo(Person.class);
+        for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
+            System.out.println(pd.getName());
+            System.out.println("  " + pd.getReadMethod());
+            System.out.println("  " + pd.getWriteMethod());
+        }
+		使用Introspector枚举javabean的所有属性以及读写方法。
+		class属性是从object继承的getClass()方法的。
+	
+		小结：JavaBean是一种命名规范的class，用getset定义熟悉。
+			  使用Introspector.getBeanInfo()可以获取属性列表。
+	
+	枚举类：
+		枚举使用，进行分割如：a，b，c，d;
+		enum是枚举类，枚举是类型，每个枚举类型是不一样的。
+		枚举的好处是，不同枚举不能相互比较或赋值，因为类型不符。
+		也就是说a枚举类复制称为b枚举类的值，a只能给a复制，因为枚举类型不一样所以会报类型错误。
+		enum比较方式:
+			enum是引用类型，但是比较不用equals而是用==因为，enum每个常量在jvm中只有一个唯一实例。
+		enum类型：
+			enum定义的枚举类和class没有任何区别，enum定义类型就是class只不过有几个特点：
+				定义的enum总是继承java.lang.Enum并且无法被继承。
+				只能定义出enum的实例，无法通过new创建enum实例。
+				定义的每个实例都是应用类型的唯一实例。
+				enum可用于switch语句。
+		enum是一个class，每个枚举的值都是class实例，so实例有些方法：
+			枚举类.枚举.name();		返回枚举名称。
+			枚举类.枚举.ordinal();	返回定义的常量的顺序，从0开始。
+			枚举类中是可以定义字段的(但是尽量定义常量的)。
+			可以给每个枚举常量添加字段如：
+				a(1),b(2),c(3),d(4);
+				这样就不用担心顺序变化，新增枚举常量时要指定个int值。
+			对枚举常量调用toString()会返回name()一样的字符串，但toString()可以被重写name()不行。
+			判断枚举常量的名字必须使用name()绝不能调用toString()。
+		因为枚举类天生的类型信息和有限个枚举常量，所以更适合switch语句。
+			
+		小结：
+			enum定义枚举，编译器会编译为final class ClassName extends Enum{}。
+			通过name()获取常量定义的字符串，不要使用toString()。
+			可为enum编写构造方法、字段、方法。
+			enum的构造方法要声明private，尽量使用final。
+	
+	记录类：
+		String、Integer都是不变类，不变类的特点：
+			定义class时使用final，无法派生子类。
+			每个字段使用final，保证创建实例后无法修改任何字段。
+		
+		record(重新编码):
+			java14后引入了Record类，类需要extends Record，定义语法是public record 方法名（）{}。
+			使用record关键字可以一行写出一个不变类。
+		
+	BigLnteger：
+		常用方法链接：https://blog.csdn.net/sobermineded/article/details/79299435
+		java中，cpu原生提供整数最大范围是64位long型整数。使用long型整数可以直接通过cpu指令进行计算，速度非常快。
+		java.math.BigInteger类用来表示任意大小整数，其内部用int[]数组模拟非常大的整数。
+			BigInteger bi = new BigInteger("1234567890");
+			System.out.println(bi.pow(5)); // 2867971860299718107233761438093672048294900000
+		BigInteger做运算的时候只能用实例方法如+：
+			BigInteger i1 = new BigInteger("1234567890");
+			BigInteger i2 = new BigInteger("12345678901234567890");
+			BigInteger sum = i1.add(i2); // 12345678902469135780
+		和long相比，BiGInteger没有范围限制但是速度慢，可将BigTnteger转为long。
+			BigInteger i = new BigInteger("123456789000");
+			System.out.println(i.longValue()); // 123456789000
+			System.out.println(i.multiply(i).longValueExact()); 
+			// java.lang.ArithmeticException: BigInteger out of long range
+		使用longValueExact()时，超出long范围后会抛出ArithmeticException。
+		BigInteger和Integer、Long都是不可变类，也继承自number，Number定义转换为基本类的方法：
+			转为byte：		byteValue()
+			转为short：		shortValue()
+			转为int:		intValue()
+			转为long:		longValue()
+			转为float: 		floatValue()
+			转为double:		doubleValue()
+		如果BigInteger表示范围超出了基本类型的范围，转换时丢失高位信息，结果不一定准确的。
+		要准确的转换成基本类型，使用intValueExact()、longValueExact()等方法，转换时超出范围，
+		直接抛出ArithmeticException异常。
+		
+	BigDecimal：
+		和BigInteger类似，它可以表示任意大小且精度完全准确的浮点数。
+		实例一个BigDecimal对象db：
+			db.multiply(db);					如果值是3，那么就是3*3，multiply是乘。
+			db.scale(db);						取浮点的小数。
+			db.stripTrailingZeros();			去掉末尾的0，如果使用scale查看返回负数的话
+												就是这个数是整数并且,-2就是就是两个0。
+			指定精度：
+				db.setScale(4,RoundingMode.HALF_UP)	四舍五入(看着语句的意思应该是向上取整)根据第一个值保留小数。
+				db.setScale(4,RoundingMode.DOWN);	截断根据第一个值保留小数，此处保留4位小数。
+			如果有两个bigdecimal对象1and2，那么创建一个该对象数组
+				1.divideAndRemainder(2);	做出发的同时求余数
+		在比较两个bigdecimal值时候相等时，使用equals()不但要求两个值相等还要求scale()相等。
+		必须必须必须使用compareTo()比较，它根据两个值大小分别返回负、正数和0，分别表示> < =。
+		源码中BigDecimal是通过BigInteger和scal表示的，BigInteger表示完整整数，scal表示小位数。
+		当然了BitDeicmal也是继承自Number的，也是不可变对象。
+		
+		因为其表示精确的小数，常用于财务计算。
+	
+	常用工具类：
+		Math：
+			进行数学计算的类，提供大量的静态方法便于实现数学计算。
+			求绝对值：
+				Math.abs(-100);		整数and0绝对值是其本身，负数绝对值是它相反数。
+			取最大最小：
+				Math.max(10,1);		选取值中最大的
+				Math.min(13.1,1.2);	选取值中最小的
+			计算xy次方：
+				Math.pow(2,10);		2的10次方=1024
+			计算√x：	
+				Math.sqrt(2); // 1.414...
+			计算ex次方：
+				Math.exp(2); // 7.389...
+			计算以e为底的对数：
+				Math.log(4); // 1.386..
+			计算以10为底的对数：
+				Math.log10(100); // 2
+			三角函数：
+				Math.sin(3.14); // 0.00159...
+				Math.cos(3.14); // -0.9999...
+				Math.tan(3.14); // -0.0015...
+				Math.asin(1.0); // 1.57079...
+				Math.acos(1.0); // 0.0
+			Math还提供了几个数学常量：
+				double pi = Math.PI; // 3.14159...
+				double e = Math.E; // 2.7182818...
+				Math.sin(Math.PI / 6); // sin(π/6) = 0.5
+			生成一个随机数x，x的范围是0 <= x < 1：
+				Math.random(); // 0.53907... 每次都不一样
+				这个生成随机数的类型只能是double，例子：
+					double a = Math.random();	现在的取值范围0，1
+					double b = 10;
+					double c = 30;
+					double d = a*(c-b)+b; 	现在的取值范围是10-30的小数
+					long e = (long) d;		使用类型的话e的取值范围就是10-30的整数
+					Systom.out.println(d);
+			Random：
+				创建伪随机数，是指定一个初始的种子，产生的水机数序列是完全一样的。
+				生成随机数的方法：
+					nextInt()、nextLong()、nextFloat()、nextDouble()
+					Random r = new Random();
+					r.nextInt(); // 2071575453,每次都不一样
+					r.nextInt(10); // 5,生成一个[0,10)之间的int
+					r.nextLong(); // 8811649292570369305,每次都不一样
+					r.nextFloat(); // 0.54335...生成一个[0,1)之间的float
+					r.nextDouble(); // 0.3716...生成一个[0,1)之间的double
+				SecureRandom:
+					有伪随机数，就有真随机数。实际上真正的真随机数只能通过量子力学原理来获取，
+					而我们想要的是一个不可预测的安全的随机数，SecureRandom就是用来创建安全的随机数的：
+					SecureRandom sr = new SecureRandom();
+					System.out.println(sr.nextInt(100));
+					密码学中，安全的随机数非常重要，不使用安全的伪随机数，所有加密体系都将被攻破，
+					必须使用secureRandom产生安全的随机数。
+					详情：https://www.liaoxuefeng.com/wiki/1252599548343744/1260473555087392
+			
+			Math：数据计算
+			Random：生成伪随机数
+			SecureRandom：生成安全的伪随机数
+
+异常处理：
+	
+	java异常：
+		值为int但输入String时会报数字形式错误异常 							NumberFormatExcrption
+		程序像读取文件，但是计算机没有或者被删掉了报文件未被创建			FileNotFoundException	
+		调用方法获知调用失败的信息：
+			1.约定返回错误码：
+				如：处理个文件返回0成功返回其他整数表示约定的错误码。
+			2.语言层面上提供个异常处理机制：
+				java内置了一套异常处理机制总是使用异常表示错误。
+				异常是一种class，so本身带有类型信息。异常可以在任何地方抛出，但是要在上层捕获，
+				这样就和方法调用分离了。
+		如下是异常的继承关系：
+					 ┌───────────┐
+                     │  Object   │
+                     └───────────┘
+                           ▲
+                           │
+                     ┌───────────┐
+                     │ Throwable │
+                     └───────────┘
+                           ▲
+                 ┌─────────┴─────────┐
+                 │                   │
+           ┌───────────┐       ┌───────────┐
+           │   Error   │       │ Exception │
+           └───────────┘       └───────────┘
+                 ▲                   ▲
+         ┌───────┘              ┌────┴──────────┐
+         │                      │               │
+┌─────────────────┐    ┌─────────────────┐┌───────────┐
+│OutOfMemoryError │... │RuntimeException ││IOException│...
+└─────────────────┘    └─────────────────┘└───────────┘
+                                ▲
+                    ┌───────────┴─────────────┐
+                    │                         │
+         ┌─────────────────────┐ ┌─────────────────────────┐
+         │NullPointerException │ │IllegalArgumentException │...
+         └─────────────────────┘ └─────────────────────────┘
+		Throwable是异常的根继承自object，他有两个体系：error和exception
+		error表示严重错误，程序对此无能为力如：
+			OutOfMemoryError：内存耗尽
+			NoClassDefFoundError：无法加载某个Class
+			StackOverflowError：栈溢出
+		exception是运行时错误，可以被捕获并处理如：
+			NumberFormatException：数值类型的格式错误
+			FileNotFoundException：未找到文件
+			SocketException：读取网络失败
+		又或者是程序逻辑不对造成如：
+			NullPointerException：对某个null的对象调用方法或字段
+			IndexOutOfBoundsException：数组索引越界
+		exception分两大类：
+			1.RuntimeException及它的子类
+			2.非RuntimeException（包括IOException、ReflectiveOperationException等等）
+		java规定：
+			必须捕获的异常包括Exception及其子类，不包括RuntimeException及其子类，这种类型称为Checked Exception。
+			不需要捕获的异常，error及其子类，RuntimeException及其子类。
+		
+		捕获异常：
+			通常使用try..catch语句，将可能异常的代码放到try{}下，使用catch捕获对应的exception及其子类。
+			很多地方不捕获异常将会报错，捕获后将返回异常信息。
+			
+			方法定义的时候使用throws xx表示改方法可能抛出异常类型。调用方在调用的时候必须强制捕获否则编译报错。
+			也就是说可见本类的异常进行抛出，但是其他类调用此类时必须强制捕获异常否则报错。
+			如果不捕获的话可以一直throws 异常类型进行抛出。
+			如果在main方法还是抛出后，那么一旦发生异常程序立刻退出。
+			
+			所有异常都能调用printStackTrace()方法打印异常栈，是一个简单有用快速打印异常的方法。
+		
+		结：
+			Java使用异常来表示错误，并通过try ... catch捕获异常；
+
+			Java的异常是class，并且从Throwable继承；
+
+			Error是无需捕获的严重错误，Exception是应该捕获的可处理的错误；
+
+			RuntimeException无需强制捕获，非RuntimeException（Checked Exception）需强制捕获，或者用throws声明；
+
+			不推荐捕获了异常但不进行任何处理。
+		
+	捕获异常：
+		多层catch语句：
+			使用多个catch语句，每个分别捕获对应的exception及其子类。JVM捕获到异常后，会从上到下匹配catch语句，
+			匹配到某个catch后执行catch代码，然后不再继续匹配。
+			多个catch只有一个被执行，并且顺序很重要，子类写前否则就会被其他高级的异常类执行了。
+		
+		finally语句：
+			无论发生什么都会运行finally下的代码，finally顺序在catch后面。
+			finally不是必须的可写可不写，finally总是最后执行。
+		
+		捕获多种异常：
+			某些异常处理逻辑相同，但是异常本身不存在继承关系，就得编写多条catch子句。
+			
+	抛出异常：
+		异常传播：
+			某方法抛出异常，当前方法没有抛出，异常就会被抛到上层调用方法，直到被try捕获为止。
+			异常.printStackTrace()可以打印出方法的调用栈。
+		抛出异常：
+			发生错误时，如输入非法字符就可抛出异常。
+			如果方法捕获异常后，又在carch中抛出新的异常，就相当于把抛出的异常类型转换了。
+			捕获异常并抛出时，一定保留住原始异常否则很难定位第一案发现场。
+			如果在catch中抛出异常那么，不会影响finally的运行，JVM会先执行finally然后抛出异常。
+		异常屏蔽：
+			如果执行finally时抛出异常，那么catch准备抛出的异常就消失了，so只能抛出一个异常，
+			没有被抛出的被称为"被屏蔽"的异常(Suppressed Exception)。
+			如果要获知所有异常先用Exception对象保存原始异常，后调用Throwable.addSuppressed(),
+			把原始异常添加进来，最后在finally抛出。
+		异常打印的详细的栈信息是找出问题的关键！
+	
+	自定义异常：
+		Java标准库定义的常用异常包括：
+			Exception
+			│
+			├─ RuntimeException
+			│  │
+			│  ├─ NullPointerException
+			│  │
+			│  ├─ IndexOutOfBoundsException
+			│  │
+			│  ├─ SecurityException
+			│  │
+			│  └─ IllegalArgumentException
+			│     │
+			│     └─ NumberFormatException
+			│
+			├─ IOException
+			│  │
+			│  ├─ UnsupportedCharsetException
+			│  │
+			│  ├─ FileNotFoundException
+			│  │
+			│  └─ SocketException
+			│
+			├─ ParseException
+			│
+			├─ GeneralSecurityException
+			│
+			├─ SQLException
+			│
+			└─ TimeoutException
+		当我们在代码中需要抛出异常时，尽量使用JDK已定义的异常类型。例如，参数检查不合法，应该抛出IllegalArgumentException。
+		大型项目可定义新的异常类型，保持合理的异常继承体系是很重要的，常见的作法是定义个BaseException作为根异常，
+		从其派生出各种业务类型的异常
+		
+		如果期待的运行代码没有发生异常一定一定一定加上try。
+		
+	
+	NullPointerException(空指针、NPE)：
+		俗称NPE，如果一个对象为null，调用其方法或字段就会产生空指针，它通常是由JVM抛出的。
+		指针源自c，java中没有指针。我们定义的变量实际上是引用，Null Pointer确切是Null Reference但两者区别不大。
+		处理NullPointerException：
+			首先，必须明确，处理空指针是种代码逻辑错误，原则上遇到早暴露、早修复，禁止使用catch隐藏编码错误：
+				catch(NullPointerException e)这样的是禁止的。
+		好的编码习惯可以极大降低空指针的产生，如声明变量为" "而不为null。
+		
+		java14新增的功能是空指针时显示报错详细信息，默认关闭，可给jvm添加参数启动：
+			java -XX:+ShowCodeDetailsInExceptionMessages Main.java
+			此命令的cmd窗口需要在项目文件下打开并保证和Main(也可以是其他需要运行类)处在同一级。
+			但是经过我测试发现只能在cmd窗口运行命令才会有详细的报错信息，ecplise(ide开发环境)没有。
+			
+	断言(Assertion)：
+		它是一种调试程序的方式，java中使用assert关键字实现断言。
+		assert x => 0;	这是条件，如果条件成立则正常输出，否则抛出AssertionError。
+		使用断言时可添加断言消息：assert x >=0 : "断言失败***"	
+		断言失败AssertionError会带上断言失败**便于调试，在断言后面添加冒号，后加上断言消息即可。
+		JVM是默认关闭断言指令，即使有assert关键字就自动忽略了。
+		执行断言的话要在命令行输入如下命令：
+			-ea:com.itranswarp.sample.Main
+				ea是-enableassertions简写
+				后面的路径是指定启用断言的类如果包路径后加上...不写类的话是再这个包启动断言。
+		实际上很少使用断言，更好是编写单元测试。
+		断言是一种调试方式，断言失败会抛出AssertionError，只能在开发和测试阶段启用断言。
+	
+	使用JDK Logging(日志)：
+		程序结果与预期不符时可使用logging，用来代替输出语句。
+			可以设置输出样式，避免自己每次都写"ERROR: " + var；
+			可以设置输出级别，禁止某些级别输出。例如，只输出错误日志；
+			可以被重定向到文件，这样可以在程序运行结束后查看日志；
+			可以按包名控制日志级别，只输出某些包打的日志；
+			可以……
+		日志会显示输出的详细信息如事件、类等等。
+		使用方法是，先声明对象Logger l=Logger.getGlobal();用对象调用级别，如：
+		l.fine("输出语句");
+		日志定义了7个级别限制：
+			SEVERE
+			WARNING
+			INFO
+			CONFIG
+			FINE
+			FINER
+			FINEST
+			info是默认级别，其以下是不会打印出来的，好处是调整级别就可以屏蔽很多调试相关的日志输出。
+			
+		logging再jvm启动时读取配置文件完成初始化，一旦运行main()方法就无法修改配置。
+		需要在JVM启动时传递参数-Djava.util.logging.config.file=<config-file-name>，uoyi
+		java标准库内置的logging使用不广泛。
+	
+	使用Commons Logging(通用日志)：
+		和logging不一样，它是第三方日志库，由Apache创建的日志模块。
+		特色是，可以挂接不同的日志系统后通过配置文件指定挂接的日志系统，默认情况下，自动搜索并使用Log4j
+		(另一个流行的日志系统)，如果没有找到log4j再使用JDK logging。
+		
+		第一步，通过LogFactory获取Log类的实例； 第二步，使用Log实例的方法打日志
+			Log log = LogFactory.getLog(Main.class);
+			log.info("start...");
+			log.warn("end.");
+		但是运行的时候会报找不到类的错误，因为它是第三方提供的，所以要提供个jar包(commons-logging-1.2.jar)，
+		将jar和运行类放在同一文件下，打开命令行，先编译运行文件如：javac -cp commons-logging-1.2.jar Main.java
+		编译成功后当前文件夹会多出个Main.class文件，
+		然后执行Main文件：java -cp .;commons-logging-1.2.jar Main
+		如果在Linux或macOS下运行：
+						  java -cp .:commons-logging-1.2.jar Main
+		上语句有部分：一个是.还有commons-logging-1.2.jar，使用;分割。
+		.表示当前目录，没有它，JVM不会在当前目录搜索Main.class,就会报错。
+		Commons Logging定义了6个日志级别(默认是info)：
+			FATAL
+			ERROR
+			WARNING
+			INFO
+			DEBUG
+			TRACE
+		使用commons logging，在静态方法中引用log，通常定义个静态变量类型：
+			  static final Log log = LogFactory.getLog(Main.class);
+		实例方法中通常定义实例变量
+			 protected final Log log = LogFactory.getLog(getClass());
+		
+		实例log获取方式有LogFactory.getLog(getClass());
+						 LogFactory.getLog(当前类.getClass());
+			第一个方式的好处是子类可以使用父类的log实例。
+		
+		由于java类动态特性，子类获取的log字段实际上相当于LogFactory.getLog(子类本类.class)，但却是从父类继承的，无需修改代码。
+		日志方法除了info(String)，info是日志打印输出。
+		还有重载方法info(String,Throwable)。
+		log.error(String,exception)打印异常。
+		Commons Logging是使用最广泛的日志模块；
+
+		Commons Logging的API非常简单；
+
+		Commons Logging可以自动检测并使用其他日志模块。
+				
+	
+	使用Log4j：
+		日志实现可以使用Log4j。它是一个组件化设计的日志系统，构造大致如下：
+			log.info("User signed in.");
+			 │
+			 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+			 ├──>│ Appender │───>│  Filter  │───>│  Layout  │───>│ Console  │
+			 │   └──────────┘    └──────────┘    └──────────┘    └──────────┘
+			 │
+			 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+			 ├──>│ Appender │───>│  Filter  │───>│  Layout  │───>│   File   │
+			 │   └──────────┘    └──────────┘    └──────────┘    └──────────┘
+			 │
+			 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+			 └──>│ Appender │───>│  Filter  │───>│  Layout  │───>│  Socket  │
+				 └──────────┘    └──────────┘    └──────────┘    └──────────┘
+		log4j输出一条日志时，它会自动通过不同的appender将同一条日志输出到不同目的地。
+			console：输出到屏幕；
+			file：输出到文件；
+			socket：通过网络输出到远程计算机；
+			jdbc：输出到数据库
+		日志输出过程中通过filter过滤哪些log需被输出，哪些不需要，如：仅输出ERROR级别的日志。
+		最后通过layout格式化日志信息，如自动添加日期、事件、方法名等信息。
+		实际使用时并不关心它的api，而是通过配置文件进行配置。
+		配置文件详情：https://www.liaoxuefeng.com/wiki/1252599548343744/1264739436350112
+		配置log4j较繁琐，配置完成后非常方便，凡是info(默认)级别的日志会自动输出到屏幕，
+		而error级别的，不但会输出到屏幕，同时会输出到文件。且日志文件达到指定大小，log4j
+		就会自动切割新的日志文件，最多保留10份(详情根据配置来)。
+		因为Log4j也是三方库，先下载jar包将3个jar包放入classpath中：
+			og4j-api-2.x.jar
+			log4j-core-2.x.jar
+			log4j-jcl-2.x.jar
+		因为commons logging会自动发现使用log4j，所以将commons的jar包也放入classpath。
+		打印日志按Commons Logging的写法即可。
+		
+		结：
+			通过Commons Logging实现日志，不需要修改代码即可使用Log4j；
+
+			使用Log4j只需要把log4j2.xml和相关jar放入classpath；
+
+			如果要更换Log4j，只需要移除log4j2.xml和相关jar；
+
+			只有扩展Log4j时，才需要引用Log4j的接口（例如，将日志加密写入数据库的功能，需要自己开发）。
+					
+			
+	使用SLF4J和Logback：
+		Commons Logging和Log4j一个负责日志API，一个负责日志底层，搭配使用非常便于开发。
+		SLF4J类似Commonslogging也是日志接口，logback类似log4j是日志实现。
+		commons的时候打印日志需要拼接字符串，slf4j的话就能使用占位符，飞创简洁，占位符表示为{}。
+		对比一下Commons Logging和SLF4J的接口：
+			Commons Logging							SLF4J
+			org.apache.commons.logging.Log			org.slf4j.Logger
+			org.apache.commons.logging.LogFactory	org.slf4j.LoggerFactory
+			区别就是log变成了logfactory。
+		使用方法是将jar包放到classpath下，jar名：
+			slf4j-api-1.7.x.jar
+			logback-classic-1.2.x.jar
+			logback-core-1.2.x.jar
+		然后使用SLF4J的Logger和LoggerFactory即可。和Log4j类似，我们仍然需要一个Logback的配置文件，
+		把logback.xml放到classpath下，配置如下：				
+			https://www.liaoxuefeng.com/wiki/1252599548343744/1264739155914176
+		
+		结：
+			SLF4J和Logback可以取代Commons Logging和Log4j。
+
+			始终使用SLF4J的接口写入日志，使用Logback只需要配置，不需要修改代码。
+
+			
+反射(Reflection)：			
+	java的反射是指程序运行期间可以拿到一个对象的所有信息。
+	
+	Class类：
+		除了int等基本类型，其他类型基本全都是class，包括interface还有引用类型等。
+		class和interface的本质是数据类型type，无继承关系的数据类无法赋值。
+		class是JVM在执行过程中动态加载的，在第一次读取到一种class类型时，将其加载进内存。
+		每加载一种class，JVM就为其创建一个Class类型的实例，并关联起来。
+			以String类为例，当JVM加载String类时，它首先读取String.class文件到内存，然后，
+			为String类创建一个Class实例并关联起来：
+				Class cls = new Class(String);
+				
+		只有JVM能创建Class实例，我们自己的java程序时无法创建class实例的，	
+		所以，JVM持有的每个Class实例都指向一个数据类型（class或interface）：
+			┌───────────────────────────┐
+			│      Class Instance       │──────> String
+			├───────────────────────────┤
+			│name = "java.lang.String"  │
+			└───────────────────────────┘
+			┌───────────────────────────┐
+			│      Class Instance       │──────> Random
+			├───────────────────────────┤
+			│name = "java.util.Random"  │
+			└───────────────────────────┘
+			┌───────────────────────────┐
+			│      Class Instance       │──────> Runnable
+			├───────────────────────────┤
+			│name = "java.lang.Runnable"│
+			└───────────────────────────┘	
+			一个Class实例包含了该class的所有完整信息：
+			┌───────────────────────────┐
+			│      Class Instance       │──────> String
+			├───────────────────────────┤
+			│name = "java.lang.String"  │
+			├───────────────────────────┤
+			│package = "java.lang"      │
+			├───────────────────────────┤
+			│super = "java.lang.Object" │
+			├───────────────────────────┤
+			│interface = CharSequence...│
+			├───────────────────────────┤
+			│field = value[],hash,...   │
+			├───────────────────────────┤
+			│method = indexOf()...      │
+			└───────────────────────────┘
+		JVM为每个加载的class创建对应的Class实例，并在其中保存了该class的所有信息。	
+		这种通过Class实例获取class信息的方法称为反射（Reflection）。	
+			1.通过一个class静态变量class获取：
+				Class c =String.class;
+			2.如果有一个实例变量，可通过该实例提供的getClass()进行获取：
+				String s = "xxx";
+				Class c = s.getClass();
+			3.知道一个Class的完整类名，可通过静态方法Class.forName()获取：
+				Class c = Class.forName("java.lang.String");
+		Class实例在JVM是唯一的，so上述方法获取的Class实例是同一个实例，可用==比较两个class实例。	
+			像这样：
+				Class c = String.class;
+				String s = "xx";
+				Class c2 =s.getClass();
+				boolean b=c==c2;    返回true;
+			class的实例和instanceof的区别：
+				Integer n = new Integer(123);
+
+				boolean b1 = n instanceof Integer; // true，因为n是Integer类型
+				boolean b2 = n instanceof Number; // true，因为n是Number类型的子类
+
+				boolean b3 = n.getClass() == Integer.class; // true，因为n.getClass()返回Integer.class
+				boolean b4 = n.getClass() == Number.class; // false，因为Integer.class!=Number.class
+				instanceof不但匹配指定类型还匹配指定类型的子类。而==判断class实例可以精确的判断数据类型但不能做子类类型比较。
+				只有在精确判断一个类型是不是某个class的时候才使用==判断class实例。
+			通过反射获取实例信息参考：
+				void printObjectInfo(Object obj) {
+					Class cls = obj.getClass();
+				}
+			过去到一个class的实例，可通过该class实例创建对应类型的实例：
+				// 获取String的Class实例:
+				Class cls = String.class;
+				// 创建一个String实例:
+				String s = (String) cls.newInstance();
+				以上相当于new String()，但只能调用public的无参构造方法，带参的构造方法或非public的构造方法都无法通过
+				Class.newInstance()被调用。
+	
+		动态加载：
+			JVM执行Java程序时，不是一次性所有的class全部加载到内存，而是第一次用到class时才加载。
+			就像执行Main类时，用到了main就会加载Main.class到内存，方法中有判断，成功则运行a方法，失败运行b方法
+			那么true时成功运行a方法这时jvm发现需要加载a类时，才会首次加载a.class，b同理。
+			这就是JVM动态加载的特性。
+			动态加载的特性对java程序非常重要，利用这个特性才能在运行期根据条件加载不同的实现类。
+			因为Commons Logging总是优先使用Log4j，所以只要将log4j的jar放到classpath中，commonslogging会自动使用。
+			小结：
+				JVM为每个加载的class及interface创建了对应的Class实例来保存class及interface的所有信息；
+
+				获取一个class对应的Class实例后，就可以获取该class的所有信息；
+
+				通过Class实例获取class信息的方法称为反射（Reflection）；
+
+				JVM总是动态加载class，可以在运行期根据条件来控制加载class。
+			
+	访问字段：
+		通过class实例获取字段信息方法：
+			Field getField(name)：			根据字段名获取某个public的field（包括父类）
+			Field getDeclaredField(name)：	根据字段名获取当前类的某个field（不包括父类）
+			Field[] getFields()：			获取所有public的field（包括父类）
+			Field[] getDeclaredFields()：	获取当前类的所有field（不包括父类）
+		获取字段值：
+			获取字段是getName("fieldName")的话,设置字段就是set(fieldName,"xxx")。
+			反射可以直接修改字段的值。
+			访问非public的话可能会报IllegalAccessException异常，因为不是public字段field访问不到，
+			所以要调用setAccessible(true),意思是不管字段是不是public。
+			以下有个反射修改字段的例子
+				String name = "Xiao Ming";
+				int age = 20;
+				Person p = new Person();
+				// TODO: 利用反射给name和age字段赋值:
+				Class c = p.getClass();
+				Field f = c.getDeclaredField("name");
+				f.setAccessible(true);
+				f.set(p, name);
+				f=c.getDeclaredField("age");
+				f.setAccessible(true);
+				f.set(p, age);
+				System.out.println(p.getName()); // "Xiao Ming"
+				System.out.println(p.getAge()); // 20
+		
+		Java的反射API提供的Field类封装了字段的所有信息：
+
+		通过Class实例的方法可以获取Field实例：getField()，getFields()，getDeclaredField()，getDeclaredFields()；
+
+		通过Field实例可以获取字段信息：getName()，getType()，getModifiers()；
+
+		通过Field实例可以读取或设置某个对象的字段，如果存在访问限制，要首先调用setAccessible(true)来访问非public字段。
+
+		通过反射读写字段是一种非常规方法，它会破坏对象的封装。	
+			
+			
+	调用方法：
+		https://www.liaoxuefeng.com/wiki/1252599548343744/1264803678201760
+		可以通过class实例获取所有field对象，也能获取所有method信息，Class类提供方法获取method：
+			Method getMethod(name, Class...)：			获取某个public的Method（包括父类）
+			Method getDeclaredMethod(name, Class...)：	获取当前类的某个Method（不包括父类）
+			Method[] getMethods()：						获取所有public的Method（包括父类）
+			Method[] getDeclaredMethods()：				获取当前类的所有Method（不包括父类）
+		一个Method对象包含一个方法的所有信息：
+			getName()：				返回方法名称，例如："getScore"；
+			getReturnType()：		返回方法返回值类型，也是一个Class实例，例如：String.class；
+			getParameterTypes()：	返回方法的参数类型，是一个Class数组，例如：{String.class, int.class}；
+			getModifiers()：		返回方法的修饰符，它是一个int，不同的bit表示不同的含义。
+			当我们获取到一个Method对象时，就可以对它进行调用。我们以下面的代码为例：
+				String s = "Hello world";
+				String r = s.substring(6); // "world"
+				除了substring(int)还有substring(int，int)，int是截取下标到末尾的字段
+														   int，int就是从第一个int到第二个int的字段，也是通过下标截取。
+			对Method实例调用invoke就相当于调用该方法，invoke的第一个参数是对象实例，即在哪个实例上调用该方法，
+			后面的可变参数要与方法参数一致，否则将报错。
+		调用静态方法：
+			获取到method表示一个静态方法，调用static method时，由于无需指定实例对象所以invoke()传入第一个参数永远为null，
+			Integer.parseInt(String)为例：
+				Method m = Integer.class.getMethod("parseInt", String.class);	//这就是Integer.parseInt(String)
+				// 调用该静态方法并获取结果:
+				Integer n = (Integer) m.invoke(null, "12345");
+		调用非public方法：
+			和field类似，非public虽然可以通过Class.getDeclaredMethod()过去该方法实例，直接对其调用将得到一个IllegalAccessException。
+			我可以通过Method.setAccessible(true)调用非public方法：
+			如果JVM运行期存在SecurityManager那他可能不允许对java和javax开头的package的类调用setAccessible(true),
+			这样可以保证JVM核心库的安全。
+			
+		多态！！！！！！！！！：
+			 Java实现多态有三个必要条件：继承、重写、向上转型。
+			 子类可向父类进行向上转型，但会丢失些许方法和属性就是父类不能调用子类独有的方法，如果子类重写了父类方法，
+			 那么就会引用子类的重写方法。
+			 如：											相当于：		
+				Method m = Person.class.getMethod("hello");				Person p = new Student();
+				m.invoke(new Student());								p.hello();	
+				
+				
+		利用反射来调用方法例子如下：
+			String name = "Xiao Ming";
+			int age = 20;
+			Person p = new Person();
+			// TODO: 利用反射调用setName和setAge方法:
+			
+			Method m = p.getClass().getMethod("setName", String.class);
+			m.invoke(p, name);
+			Method m1 = p.getClass().getMethod("setAge", int.class);
+			m1.invoke(p, age);
+
+			System.out.println(p.getName()); // "Xiao Ming"
+			System.out.println(p.getAge()); // 20
+				需要先将方法信息添加到method中
+				invoke(p,name)方法的作用是调用方法，将方法参数化
+					   p就是方法信息如方法名和方法返回值
+					   name就是需要修改的属性了。			
+		结：
+			Java的反射API提供的Method对象封装了方法的所有信息：
+
+			通过Class实例的方法可以获取Method实例：getMethod()，getMethods()，getDeclaredMethod()，getDeclaredMethods()；
+
+			通过Method实例可以获取方法信息：getName()，getReturnType()，getParameterTypes()，getModifiers()；
+
+			通过Method实例可以调用某个对象的方法：Object invoke(Object instance, Object... parameters)；
+
+			通过设置setAccessible(true)来访问非public方法；
+
+			通过反射调用方法时，仍然遵循多态原则。
+			
+	调用构造方法：
+		Constructor（构造器）
+		newInstance（反射）
+		Instance（实例）
+		XXX x = new XXX();
+		创建实例or new对象的时候，如果不加上任何参数，就是创建了一个空的构造方法，创建类的时候会默认创建一个空的构造方法。
+		如果在构造方法中加上参数那么必须新建一个构造方法，否则new对象是无参时会报错。
+		如通过反射创建新的实例，可以调用Class提供的newInstance()方法。
+			Person p = Person.Class.newInstance();
+			这个方法的局限性，它只能调用该类的public无参构造方法。如果构造方法带有参数或不是public就无法通过
+			Class.newInstance()调用。
+		为调用任意构造方法，反射API提供Constructor，它包含一个构造方法的所有信息，可创建一个实例。
+		Constructor对象和Method相似，不同的是仅在于它是给构造方法，并且调用结果总是返回实例。
+			// 获取构造方法Integer(int):
+			Constructor cons1 = Integer.class.getConstructor(int.class);
+			// 调用构造方法:
+			Integer n1 = (Integer) cons1.newInstance(123);
+			System.out.println(n1);
+			类型同理。
+		通过Class实例获取Constructor的方法如下：
+			getConstructor(Class...)：			获取某个public的Constructor；
+			getDeclaredConstructor(Class...)：	获取某个Constructor；
+			getConstructors()：					获取所有public的Constructor；
+			getDeclaredConstructors()：			获取所有Constructor。
+		Constructor总是当前类定义的构造方法，必须先通过setAccessible(ture)设置允许访问，setAccessible可能失败。
+		setAccessible(ture)是为了能访问非public的并提高反射性能。
+		结：
+			Constructor对象封装了构造方法的所有信息。
+			通过Class实例的方法可获取constructor实例。
+			通过constructor实例可创建一个实例对象，newInstance()。
+			通过设置setAccessible(true)访问非public构造方法。
+		
+	获取继承关系：
+		获取某个class对象时，就获取到一个类类型：
+			Class cls = String.class; // 获取到String的Class
+			也可用实例的getClass()获取：
+				String s = "";
+				Class cls = s.getClass(); // s是String，因此获取到String的Class
+			又或者是Class.forName("")床头class的完整路径名获取：
+				Class s = Class.forName("java.lang.String");
+			以上都是一个实例，因为JVM对每个加载的class之创建一个class实例表示它的类型。
+		
+		获取父类的Class：
+			也可以获取已有class实例的父类的class。
+			获取父类的class用：Class s = x.getSuperclass();
+			最大的父类时object再上面就是null了。
+			当然除了任何非interface(接口)的Class都必定存在一个父类。
+		获取interface：
+			一个类可能实现一个或多个接口，通过class可以查询实现的接口类型。
+				Class s = Integer.class;
+				Class[] is = s.getInterfaces();
+				然后循环遍历即可。
+				但是getInterfaces()只返回当前类直接实现的接口类型，不包括父类实现的接口类型。
+			如果要获取父类的接口需要先获取到父类，然后再获取它的实现接口。
+				如：
+				Class s = Integer.getSuperclass(); //获取integer的父类
+				Class ss = s.getInterfaces();	//获取integer父类实现的接口。
+				然后循环遍历。
+			
+		继承关系：
+			判断实例是否为某个类型时，一般使用instanceof操作符：
+				Object n = Integer.valueOf(123);
+				boolean isDouble = n instanceof Double; // 想判断为什么类型就在Double输入指定类型。			
+			如果两个class实例，判断一个向上转型是否成立可调用，isAssignableFrom()。
+				// Integer i = ?
+				Integer.class.isAssignableFrom(Integer.class); // true，因为Integer可以赋值给Intege
+				Integer.class.isAssignableFrom(Number.class); // false，因为Number不能赋值给Integer
+				如果参数填写的是父类那就是false，举例因为number不能赋值给integer
+		结：
+			通过Class对象可以获取继承关系：
+			Class getSuperclass()：获取父类类型；
+			Class[] getInterfaces()：获取当前类实现的所有接口。
+			通过Class对象的isAssignableFrom()方法可以判断一个向上转型是否可以实现。	
+			
+	
+	动态代理：https://www.liaoxuefeng.com/wiki/1252599548343744/1264804593397984
+		class和interface的区别
+			可以实例化class(除了abstract抽象的)
+			不能实例化interface
+		所有的intterface类型变量总是通过向上转型并指向某个实例的。
+		CharSequence cs = new StringBuilder();		Stringbuilder实现charsequence接口
+		java标准库提供一种动态代理(Dynamic Proxy)的机制，可在运行期动态创建某个interface的实例。
+		
+		什么是动态代理，如果定义一个接口hello，但是不去编写实现类，而通过jdk提供的Proxy.newProxyInstance()创建
+		一个hello接口对象。这种没有实现类但是运行期动态创建一个接口对象的方式，称为动态代码。
+		JDK提供动态创建接口对象的方式为动态代理。
+		
+		结：
+			Java标准库提供了动态代理功能，允许在运行期动态创建一个接口的实例；
+			动态代理是通过Proxy创建代理对象，然后将接口方法“代理”给InvocationHandler完成的。
+
+
+注解(Annotation)	一定要看https://blog.csdn.net/qq1404510094/article/details/80577555：
+	注解和class还有interface一样也是一种类型。
+	使用注解：
+		注解是java源码的类、方法、字段、参数前的一种特殊注释，以@开头。
+		注解的作用：
+			有三类注解：
+				1.编译器使用的注解：
+					@Override：编译器检查该方法时候正确的实现重写。
+					@SuppressWarnings：高速编译器忽略此处代码产生的警告。
+					此类注解不会被编译到.class文件，在编译后就被丢弃。
+				2.有文件处理.class文件使用的注解：
+					如有些工具在加载class的时候，对class做动态修改，实现特殊功能，这一类注解就会被编译进.class文件，
+					单价在结束后并不会存在于内存中。这些注解只被一些底层使用，一般不用我们处理。
+				3.程序运行其能读取的注解：
+					这类注解记载后一直存在于JVM，这是最常用的注解。如一个配置了@PostConstruct的方法会在调用构造方法后自动
+					被调用(这是java代码读取该注解实现的功能，JVM并不会识别该注解)。
+			定义注解时，也能定义配置参数：
+				所有基本类型。
+				String。
+				枚举类型。
+				基本类型、String、Class以及枚举的数组。
+				配置参数必须是常量so以上的限制保证注解定义的时候已确定每个参数的值。
+				注解的参数可有默认值，缺少某个配置参数时就使用默认值，如果只写注解的话，就是所有参数全采用默认值。
+				大部分会有value的参数配置，也可以只写常量省略value。
+			小结
+				注解（Annotation）是Java语言用于工具处理的标注：
+
+				注解可以配置参数，没有指定配置的参数使用默认值；
+
+				如果参数名称是value，且只有一个参数，那么可以省略参数名称。	
+			
+	定义注解：
+		java语言使用@interface语法定义注解(Annotation)：
+			public @interface Report {
+				int type() default 0;
+				String level() default "info";
+				String value() default "";
+			}
+			注解参数类似无参数方法，可用default设定个默认值，最常用的参数命名为value。
+		元注解：
+			可以修饰其他注解的注解称为元注解(meta annotation)。Java标准库已定义些元注解，我们只需要使用，不必自己定义。
+			@Target：
+				常用的元注解是@Target。使用它可定义注解能被应用于源码的位置。
+				类或接口：ElementType.TYPE；
+				字段：ElementType.FIELD；
+				方法：ElementType.METHOD；
+				构造方法：ElementType.CONSTRUCTOR；
+				方法参数：ElementType.PARAMETER。
+				像这样(但是我不知道这是干嘛用的)：
+					@Target(ElementType.METHOD)
+					public @interface Report {
+						int type() default 0;
+						String level() default "info";
+						String value() default "";
+					}
+			@Retention：
+				此注解定义了注解的声明周期：
+					仅编译期：RetentionPolicy.SOURCE；	注解只保留在源文件，当Java文件编译成class文件的时候，注解被遗弃；被编译器忽略
+					仅class文件：RetentionPolicy.CLASS；注解被保留到class文件，但jvm加载class文件时候被遗弃，这是默认的生命周期
+					运行期：RetentionPolicy.RUNTIME。	注解不仅被保存到class文件中，jvm加载class文件之后，仍然存在
+				如果这个注解不存在，那么注解默认为class。因为通常定义的注解都是RUNTIME(运行时间)，所以务必加上
+				@Retention(RetentionPolicy.RUNTIME)
+				@Retention(RetentionPolicy.RUNTIME)
+				public @interface Report {
+					int type() default 0;
+					String level() default "info";
+					String value() default "";
+				}
+			
+			@Repeatable：
+				此元注解可定义Annotation是否可重复，但应用不是特别广泛。
+				如果使用此元注解的注解，则可重复声明使用，如下：
+					@Report(type=1, level="debug")
+					@Report(type=2, level="warning")
+					public class Hello {
+					}
+			
+			@Inherited：
+				此字段定义子类是否可继承父类定义的注解，但是只针对ElementType.TYPE(类或接口)类型的注解有效，并只针对class的继承，interface继承无效。
+				使用此注解定义的注解被类用到了，那么子类默认也定义了该注解。
+		如何定义注解：
+			1.使用@interface定义注解：
+				public @interface Report {}
+			2.添加参数，默认值：
+				public @interface Report{
+					int type() default 0;
+					String level() default "info";
+					String value() default "";
+				}
+				最常用的参数定义为value()，推荐所有参数都尽量设置默认值。
+			3.用元注解配置注解：
+				@Target(ElementType.TYPE)
+				@Retention(RetentionPolicy.RUNTIME)
+				public @interface Report {
+					int type() default 0;
+					String level() default "info";
+					String value() default "";
+				}
+				必须设置target和retention，后者一般设置为runtime，因为自定义注解通常要求在运行期读取。
+				一般情况下不必写inherited和repeatable
+		结：
+			Java使用@interface定义注解：
+
+			可定义多个参数和默认值，核心参数使用value名称；
+
+			必须设置@Target来指定Annotation可以应用的范围；
+
+			应当设置@Retention(RetentionPolicy.RUNTIME)便于运行期读取该Annotation。
+			
+	处理注解：
+		注解本身对代码逻辑没有任何影响，根据@Retention的配置：
+			SOURCE类型的注解在编译期就被丢掉了；
+			CLASS类型的注解仅保存在class文件中，它们不会被加载进JVM；
+			RUNTIME类型的注解会被加载进JVM，并且在运行期可以被程序读取。
+						
+		注解使用由工具决定。
+		SOURCE类型的注解主要由编译器使用，因此一般只使用不便写。
+		CLASS类型的注解主要底层工具库使用，涉及class加载，很少用到。
+		RUNTIME类型注解不但使用而且经常编写。
+		
+		注解定义后也是一种class，所有的注解都继承自java.lang.annotation.Annotation，so读取注解需用到反射API。		
+		判断某个注解是否存在于class、filed、method或constructor：
+			Class.isAnnotationPresent(Class)
+			Field.isAnnotationPresent(Class)
+			Method.isAnnotationPresent(Class)
+			Constructor.isAnnotationPresent(Class)
+			
+			如判断注解是否存在与person类：
+				Person.class.isAnnotationPresent(Report.class);	
+				
+		java提供使用反射API读取注解的方法包括以下：
+			Class.getAnnotation(Class)
+			Field.getAnnotation(Class)
+			Method.getAnnotation(Class)
+			Constructor.getAnnotation(Class)	
+			如：
+				// 获取Person定义的@Report注解:
+				Report report = Person.class.getAnnotation(Report.class);
+				int type = report.type();
+				String level = report.level();
+			
+		反射API读取注解由两种方法：
+			1.判断注解是否存在，存在就直接读取：
+				Class cls = Person.class;
+				if (cls.isAnnotationPresent(Report.class)) {
+					Report report = cls.getAnnotation(Report.class);
+					...
+				}
+			2.直接读取注解，如不存在就返回null：
+				Class cls = Person.class;
+				Report report = cls.getAnnotation(Report.class);
+				if (report != null) {
+				   ...
+				}
+			
+	小结
+		可以在运行期通过反射读取RUNTIME类型的注解，注意千万不要漏写@Retention(RetentionPolicy.RUNTIME)，
+		否则运行期无法读取到该注解。
+		可以通过程序处理注解来实现相应的功能：
+			对JavaBean的属性值按规则进行检查；
+			JUnit会自动运行@Test标记的测试方法。
+		
+
+泛型：
+	什么是泛型：
+		泛型是一种代码模块，可用一套代码套用各种类型。
+		ArrayList是可变长度数组，使用比普通数字更方便。
+		实际上ArrayList内部是Object[]数组，配合存储当前分配的长度，就可充当可变数组。
+		但是这个数组如果要转变成其他类型就会容易出错，不方便，而且要为其单独编写一个ArrayList，
+		如果每一个类型都编写一个ArrayList实在太麻烦了。
+		为了解决这个问题特地将ArrayList编程一种模板ArrayList<T>这就是泛型，T可以是任何class，
+		这样就可以创建任何ArrayList：
+			ArrayList<String> strList = new ArrayList<String>();
+			ArrayList<int> strList = new ArrayList<int>();
+			ArrayList<Student> strList = new ArrayList<Student>();
+			由编译器对类型作检查，值必须是相同类型的否则报异常。
+			这样就是实现编写一次，万能匹配，通过编译器保证了类型安全，这就是泛型。
+		向上转型：
+			类型ArrayList<T>可以向上转型为List<T>。
+			ArrayList<Integer>上转为List<Integer>只能根据这样的规则进行向上转型。
+		注：
+			泛型就是编写模板代码来适应任意类型；
+
+			泛型的好处是使用时不必对类型进行强制转换，它通过编译器对类型进行检查；
+
+			注意泛型的继承关系：可以把ArrayList<Integer>向上转型为List<Integer>（T不能变！），
+			但不能把ArrayList<Integer>向上转型为ArrayList<Number>（T不能变成父类）。
+					
+	使用泛型：
+		如果不定义泛型类型的话，那它实际上类型就是object
+		编译器看到接收的泛型类型是Integer的话，后面的泛型类型必须也是Integer。
+		所以后面的泛型可以省略：
+			List<Integer> i=new Arraylist<>();
+
+		泛型接口：
+			public interface Comparable<T>
+			class Person implements Comparable<Person>
+			
+			Comparable接口中的compareTo是用来比较对象大小的，使用a.compareTo(b),就是对比a和b的大小。
+			字符串和数值类型都能比较。
+			结：
+				使用泛型时，把泛型参数<T>替换为需要的class类型，例如：ArrayList<String>，ArrayList<Number>等；
+
+				可以省略编译器能自动推断出的类型，例如：List<String> list = new ArrayList<>();；
+
+				不指定泛型参数类型时，编译器会给出警告，且只能将<T>视为Object类型；
+
+				可以在接口中定义泛型类型，实现此接口的类必须实现正确的泛型类型。
+		
+		编写泛型：
+			泛型类型<T>不能用于静态方法！！！
+		多个泛型类型：
+			可以public class 泛型类<int,String>{}这样，参数也可以改为其他。但是这样有点麻烦所以可以
+			将参数改为类，这样的话该类中所有类型都能接受。
+		结：
+			编写泛型时，需要定义泛型类型<T>；
+
+			静态方法不能引用泛型类型<T>，必须定义其他类型（例如<K>）来实现静态泛型方法；
+
+			泛型可以同时定义多种类型，例如Map<K, V>。
+			
+	擦拭法(Type Erasure)：
+		擦拭法是虚拟机对泛型一无所知，所有工作都是编译器做的。
+		虚拟机会将泛型看作object，Java使用擦拭法实现泛型导致：
+			编译器将类型<T>视为object。
+			编译器根据<T>实现安全的强制转型。
+		java泛型是虚拟机在编译时实行的，编译器内部永远将所有类型T视为object处理，但在需要转型的时候，
+		编译器会根据T的类型自动为我们实行安全强制类型转换。
+		
+		java泛型的局限性，<T>不能是基本类型，如int，因为实际是object，object无法持有基本类型。
+		所有泛型实例，无论T类型是什么，getClass()返回同一个Class实例，因为T编译后全是Object。
+		而且无法判断带泛型的类型，因为不存在泛型类.class,只有唯一的类.class。
+		也就是说getClass()获取实例时，获取的时同一个class实例。
+		不能实例化T类型，因为擦拭后变成了Object类型。
+		
+		实例化T类型，要借助额外的Class<T>参数，如：
+			public Pair(Class<T> clazz) {
+				first = clazz.newInstance();
+				last = clazz.newInstance();}
+		实例化：Pair<String> pair = new Pair<>(String.class);
+		可通过String.class实例化String类型。
+		
+		泛型继承：
+			类可以继承自泛型类
+		
+		结：
+			Java的泛型是采用擦拭法实现的；
+
+			擦拭法决定了泛型<T>：
+
+			不能是基本类型，例如：int；
+			不能获取带泛型类型的Class，例如：Pair<String>.class；
+			不能判断带泛型类型的类型，例如：x instanceof Pair<String>；
+			不能实例化T类型，例如：new T()。
+			泛型方法要防止重复定义方法，例如：public boolean equals(T obj)；
+
+			子类可以获取父类的泛型类型<T>。
+			
+	extends通配符：
+		可参考实例https://www.liaoxuefeng.com/wiki/1252599548343744/1265105899616928
+		
+		如果泛型定了是number类型，那么就只能传入number类型，就连其子类Integer都不行。
+		那么可使用extends让他接受number和其子类类型，如下:
+			类<? extends Number>这样就能接收number和它子类类型了。
+			这种泛型定义称为上界通配符，就是把泛型类T的上界限定在Number了。
+		
+			<? extends Number>通配符的一个重要限制：方法参数签名setFirst(? extends Number)
+			无法传递任何Number类型给setFirst(? extends Number)。
+		extends通配符作用：
+			java.util.List<T>接口，它实现的是一个类似“可变数组”的列表。
+			如果定义一个List<? extends integer>或者List<Integer>是一样的，但它的限制是：
+				允许调用get()方法获取Integer的引用；
+				不允许调用set(? extends Integer)方法并传入任何Integer的引用（null除外）。
+		使用extends限定T类型：
+			<? extends Number>限定T的类型，String、Object都不符合Number因为他们不是。
+			
+		结：
+			使用类似<? extends Number>通配符作为方法参数时表示：
+
+			方法内部可以调用获取Number引用的方法，例如：Number n = obj.getFirst();；
+
+			方法内部无法调用传入Number引用的方法（null除外），例如：obj.setFirst(Number n);。
+
+			即一句话总结：使用extends通配符表示可以读，不能写。
+
+			使用类似<T extends Number>定义泛型类时表示：
+
+			泛型类型限定为Number以及Number的子类。
+	
+
+	Super通配符：
+		void set(Pair<Integer> p, Integer first, Integer last) {
+			p.setFirst(first);
+			p.setLast(last);
+		}
+		传入Integer可以，Number不行。
+		因为number和object是integer的父类，setFirst(Integer)是能接受的。
+		<? super Integer>意思是发发参数接受所有泛型类型为Integer和它父类的类型。
+		 
+		<? super Integer>表示：
+			可以调用set(? super Integer)传入Integer的引用。
+			不可以调用get()方法获得Integer的引用。
+		唯一例外是可以获取object的引用：Object o=p.getFirst();
+		其实就是<? super Integer>通配符为方法参数，表示方法内部代码对于参数只能写不能读。
+		extends可能是只能读不能写把，大概。。。。。
+		
+		对比extends和super通配符：
+			<? extends T>和<? super T>的区别在于：
+				extends允许调用读方法T get()获取T的引用，但不允许调用写方法set(T)传入T的引用(null除外)。
+				super允许调用写方法set(T)传入T的引用，但不允许调用读方法T get()获取T的引用(获取object除外)。
+				extends是可读不可写，super是可写不可读。
+		
+		public static <T> void copy(List<? super T> dest,List<? extends T> src) {
+			for(int i=0;i<src.size();i++) {
+				T t = src.get(i);
+				dest.add(t);
+			}
+		}	这个copy()方法的定义就完美地展示了extends和super的意图：
+
+			copy()方法内部不会读取dest，因为不能调用dest.get()来获取T的引用；
+
+			copy()方法内部也不会修改src，因为不能调用src.add(T)。
+			这个copy方法另一个好处是安全地将List<Integer>添加到List<Number>，但无法反过来添加。
+			
+		PECS原则：
+			为了便于记忆何时使用extends和super，可使用PECS原则Producer Extends Consumer Super(生产者照顾消费者)。
+			如果需返回T，它是生产者Producer，就要使用extends通配符。
+			如需写入T，它是消费者Consumer，要使用super通配符。
+			返回的是生产者，写入的是消费者。
+		无限定通配符：
+			java的泛型允许使用无限定通配符(Unbounded Wildcard Type)，只定义一个？。
+			void sample(Pair<?> p) {}
+			因为<?>没有extends和super，so：
+				不允许调用set(T)方法并传入引用，null除外。
+				不允许调用T get()方法并获取T引用，只能获取Object引用。
+				所以说不能读或写，只能做一些null判断。
+			可引入泛型参数<T>消除<?>通配符。
+			<?>通配符特点是，Pair<?>是所有Pair<T>的超类，T是？的子类，可以安全的进行向上转型。
+		
+		结：
+			使用类似<? super Integer>通配符作为方法参数时表示：
+
+			方法内部可以调用传入Integer引用的方法，例如：obj.setFirst(Integer n);；
+
+			方法内部无法调用获取Integer引用的方法（Object除外），例如：Integer n = obj.getFirst();。
+
+			即使用super通配符表示只能写不能读。
+
+			使用extends和super通配符要遵循PECS原则。
+
+			无限定通配符<?>很少使用，可以用<T>替换，同时它是所有<T>类型的超类。
+	
+	
+	泛型和反射：
+		java部分反射API也是泛型，如Class<T>。
+		参考这个：https://www.liaoxuefeng.com/wiki/1252599548343744/1265105940850016
+		结：
+			部分反射API是泛型，例如：Class<T>，Constructor<T>；
+
+			可以声明带泛型的数组，但不能直接创建带泛型的数组，必须强制转型；
+
+			可以通过Array.newInstance(Class<T>, int)创建T[]数组，需要强制转型；
+
+			同时使用泛型和可变参数时需要特别小心。
+			
+			
+集合：
+	java集合简介：
+		有限集合：如一个班所有同学构成的集合之类的。
+		无限集合：所有自然数集合，1、2、3...之类的。
+		Java中一个java对象可在内部持有若干其他的java对象，并对外提供访问接口，将这种java称为集合，
+		java数组可看作是种集合：
+			String[] s=new String[10];		s[0]="ss";		String ss=s[0];
+		因为数组有初始化后大小不可变，只能按照索引顺序存取。所以不同的集合类处理不同数据：
+		可变大小的顺序链表，保证无重复元素集合。
+		Collection(集合)：
+			java.util提供了Conllection集合类，是除了Map外所有其他集合类的根接口。
+				List：一种由序列表的集合，如按索引排列的Student的List。
+				Set：保证没有重复元素的集合，如所有无重复名称的Student的Set。
+				Map：通过键值对(Key-Value)查找的映射表集合，如根据Student的name查找相应Student的Map。
+			集合的特点：
+				1.实现了接口和实现类分离，如有序表接口是List，具体实现类有ArrayList，LinkedList等。
+				2.支持泛型，可以限制在一个集合只能放入同一种数据类型的元素：
+					List<String> l= new ArrayList<>();	只能放入String。
+				java访问集合总是通过统一的方式 迭代器(Iterator)实现，最明显的好处是无需知道集合内部
+				元素按什么方式存储。
+		当然有一小部分集合是遗留类，不应继续使用：
+			Hashtable：	线程安全的Map实现。
+			Vector：	线程安全的List实现。
+			Stack：		基于Vector实现的LIFO的栈。
+		遗留接口：Ecnumeration<E>	被Iterator<E>取代。
+		
+		结：
+			Java的集合类定义在java.util包中，支持泛型，主要提供了3种集合类，包括List，Set和Map。
+			Java集合使用统一的Iterator遍历，尽量不要使用遗留接口。
+			
+	使用List：
+		List是一种基础集合和有序列表。
+		List和数组几乎完全相同，
+		list内部按照元素先后顺序存放，每个元素通过索引确定位置，索引从0开始。
+		数组的添加是将指定位置后的元素向后移动空出一个位置，删除则是将该位置后的元素向前移动一个位置。
+		
+		增删元素的有序列表，通常使用ArrayList。在它的内部使用数组存储所有元素。
+		添加元素时，arraylist自动移动需要移动的元素，然后往内部指定索引的数组添加一个元素，将集合大小+1。
+		如果数组已满，那么ArrayList将会创建一个更大的新数组，将所有元素复制到新数组，将新数组替代旧数组。
+		
+		相当于是ArrayList将增删操作进行封装，操作list类似于数组，却不关心内部元素如何移动。
+		
+		考察List<E>接口，可以看到几个主要的接口方法：
+			在末尾添加一个元素：		void add(E e)
+			在指定索引添加一个元素：	void add(int index, E e)
+			删除指定索引的元素：		int remove(int index)
+			删除某个元素：				int remove(Object e)
+			获取指定索引的元素：		E get(int index)
+			获取链表大小(含元素的个数)：int size()
+			
+		List不一定只能通过ArrayList的数组实现，
+		也可以通过LinkedList链表实现List接口，LinkedList中内部每个元素都指向下一个元素。
+			        ┌───┬───┐   ┌───┬───┐   ┌───┬───┐   ┌───┬───┐
+			HEAD ──>│ A │ ●─┼──>│ B │ ●─┼──>│ C │ ●─┼──>│ D │   │
+					└───┴───┘   └───┴───┘   └───┴───┘   └───┴───┘
+			像自行车链条一样，这就是链表。
+					
+								ArrayList		LinkedList
+			获取指定元素		速度很快		需要从头开始查找元素
+			添加元素到末尾		速度很快		速度很快
+			在指定位置添加/删除	需要移动元素	不需要移动元素
+			内存占用			少				较大
+			通常情况下优先使用ArrayList。
+		
+		List的特点：
+			list接口能添加重复数据，也可以添加null。
+		创建List：
+			除了ArrayList和LinkedList，也可通过List接口的of()方法，根据给定元素快速创建List。
+			List<Integer> l=List.of(1,2,3);
+			但是of不能接受null值，会报NullPointerException异常。
+			get()根据索引查询值的方法只有在ArrayList才是高效的，LinkedList时索引越大访问越慢。
+			
+			所以使用迭代器Iterator访问List，Iterator本身也是一个对象，由List的实例调用iterator()方法
+			的时候创建的。Iterator对象值道如何遍历一个List，不同List类型返回的Iterator对象实现也是不同的，
+			但总是具有最高访问效率。
+			
+			Iterator对象有两个方法：
+				boolean hasNext()判断是否有下一个元素，
+				E next()返回下一个元素。
+				以下是Iterator遍历List的方法：
+				List<String> list = List.of("apple", "pear", "banana");
+				for (Iterator<String> it = list.iterator(); it.hasNext(); ) {
+					String s = it.next();
+					System.out.println(s);}
+				虽然使用Itaretor比索引更复杂些。但这是遍历List最高效的方式。
+				for(String s : list){}	这样更简便。
+			只要实现了Iterable接口集合类都可以直接用for each循环遍历，编译器本身不知道怎么遍历集合对象，
+			但它会自动将for each循环变成Iterator的调用，因为Iterator接口定义一个Iterator<E> iterator()
+			方法，强迫集合类必须返回一个Iterator实例。
+		list和Array转换：
+			List转为Array有3种方法：
+				1.调用toArray()方法直接返回一个object[]数组：
+					Object[] array = list.toArray();
+					list是List集合，此方法会丢失类型信息，实际应用很少。
+				2.给toArray(T[])传入类型相同的Array，List内部自动将元素复制到传入的Array中：
+					Integer[] array = list.toArray(new Integer[3]);
+					toArray(T[])方法的泛型参数是可以传入其他类型的数组，如传入Number返回Number，Integer类型同理。
+					
+					但如果传入类型不匹配的数组，如String[]类型数组，由于List元素是Integer，所以无法放入String数组，
+					会抛出ArratStoreExcepsion。
+					如果传入数组不够大，那么list会创建一个新的够大的数组，填充后返回。
+					如果传入数组比list元素要多，那么填充玩元素后，剩下数组元素一律填充null。
+					
+				3.常用的传入一个刚好大小的数组(第二个更简单)：
+						Integer[] array = list.toArray(new Integer[list.size()]);
+						Integer[] array = list.toArray(Integer[]::new);
+			将Array转为List：
+				可直接通过List.of(T..)进行转换。
+				Integer[] array = { 1, 2, 3 };
+				List<Integer> list = List.of(array);
+				如果JDK11前的版本可用Array.asList(T...)将数组转换为List。
+				
+			返回的List不一定是ArrayList或者LinkedList，因为List只是个接口，如果调用List.of()，返回的是一个只读List。
+				对只读List使用add()、remove()方法的话会抛出UnsupportedOperationException异常。
+				
+			结：
+				List是按索引顺序访问的长度可变的有序表，优先使用ArrayList而不是LinkedList；
+
+				可以直接使用for each遍历List；
+
+				List可以和Array相互转换。
+			
+			
+	编写equals方法：
+			list的contains(object o方法判断list是否包含某个指定元素，indexOf(object o)方法可以返回指定元素索引，元素不存在就返回-1。
+			因为list是通过equals()判断两个元素是否相等，所以使用contains()、indexOf()方法时，实例要正确重写equals()方法，
+			否则放入的实例，查找不到。
+			有些能正常放入String、Integer等对象是因为定义类的时候已经实现了equals()方法。
+			
+		编写equals：
+			满足以下条件：
+				自反性（Reflexive）：对于非null的x来说，x.equals(x)必须返回true；
+				对称性（Symmetric）：对于非null的x和y来说，如果x.equals(y)为true，则y.equals(x)也必须为true；
+				传递性（Transitive）：对于非null的x、y和z来说，如果x.equals(y)为true，y.equals(z)也为true，那么x.equals(z)也必须为true；
+				一致性（Consistent）：对于非null的x和y来说，只要x和y状态不变，则x.equals(y)总是一致地返回true或者false；
+				对null的比较：即x.equals(null)永远返回false。
+			编写equals最简单的方式：
+				public boolean equals(Object o){
+					if(o instanceof list集合类型){	使用传入参数和list类型进行比较
+						list集合类型 l=(list集合类型) o;
+						return Object.equals(this.属性,l.属性);	返回为true的条件，也就是传入的参数属性进行比较相同返回true。
+					}
+					return false;
+				}
+			equals正确的编写方法：
+				1.先确定实例“相等”的逻辑，即哪些字段相等，就认为实例相等；
+				2.用instanceof判断传入的待比较的Object是不是当前类型，如果是，继续比较，否则，返回false；
+				3.对引用类型用Objects.equals()比较，对基本类型直接用==比较。
+			使用Objects.equals()比较两个引用类型是否相等的目的是省去了判断null的麻烦。两个引用类型都是null时它们也是相等的。
+			如果不调用List的contains()、indexOf()这些方法，那么放入的元素就不需要实现equals()方法。
+			
+			结:
+				在List中查找元素时，List的实现类通过元素的equals()方法比较两个元素是否相等，
+				因此，放入的元素必须正确覆写equals()方法，Java标准库提供的String、Integer等已经覆写了equals()方法；
+
+				编写equals()方法可借助Objects.equals()判断。
+
+				如果不在List中查找元素，就不必覆写equals()方法。
+		
+		
+	使用Map：
+		键值对(Key-Value)，能高效通过key快速查找value。
+		map是一个键值映射表，
+			put(key, value); 添加键值到map中。
+			get(key);	通过输入key获取到指定的数据，key不存在则返回null。
+			containsKey(key);	查询key是否存在。
+		map是一个接口，常见的实现类是HashMap。
+		put方法如果添加一个已存在的键，那么会将原有的value删掉添加新的value，否则返回null。
+		注：map中不存在重复的key，因为会把原有的value给替换掉，但是value可以重复。
+		
+		遍历Map：
+			使用foreach循环：
+				for(String s : map.KeySet())	keyset表示获取map集合所有key。
+				map.get(s);		get方法是获取map的value。
+			同时遍历Key and Value可以使用Entry：
+				for(Map.Entry<String,Integer> entry : map.entrySet())	entrySet获取map的key和value。
+					entry.getKey()		entry.getValue()			通过这两种方法获取key和value。
+			
+			注：
+				需要注意的是，因为map存储的键值对的，所以遍历的时候不保证添加和遍历顺序一致。
+				不可假设输出key是有序的。
+		
+		结：
+			Map是一种映射表，可以通过key快速查找value。
+
+			可以通过for each遍历keySet()，也可以通过for each遍历entrySet()，直接获取key-value。
+
+			最常用的一种Map实现是HashMap。
+			
+			
+	编写equals和hashCode：
+		HashMap能根据key直接拿到value，因为内部通过空间换时间方法，用一个大数组存储所有value，
+		并根据key直接计算出value应该存储在那个索引：
+			  ┌───┐
+			0 │   │
+			  ├───┤
+			1 │ ●─┼───> Person("Xiao Ming")
+			  ├───┤
+			2 │   │
+			  ├───┤
+			3 │   │
+			  ├───┤
+			4 │   │
+			  ├───┤
+			5 │ ●─┼───> Person("Xiao Hong")
+			  ├───┤
+			6 │ ●─┼───> Person("Xiao Jun")
+			  ├───┤
+			7 │   │
+			  └───┘
+		因为key为xiaoming的key值为a的话，计算得到的索引总是1，其他也一样，这样就不用遍历整个数组，即可直接读取对应key的value。
+		大致看了一下，字太多了，看的头大，有些还没理解先不写，留个链接：https://www.liaoxuefeng.com/wiki/1252599548343744/1265117217944672
+			
+		
+	使用EnumMap：
+		hashmap通过对key计算hashcode()，通过空间换时间的方式直接定位到value所在内部数组的索引，效率非常高。
+		如果key对象是enum类型，那么可使用EnumMap，用非常紧凑的数组存储value，根据enum类型的key直接定位到内部数组的索引，
+		并不需要计算hashcode()，效率高也不浪费空间。
+		使用枚举类型的map如下：
+			Map<DayOfWeek, String> map = new EnumMap<>(DayOfWeek.class);
+			map.put(DayOfWeek.MONDAY, "星期一");
+			System.out.println(map.get(DayOfWeek.MONDAY));
+		使用EnumMap的时候，总是map接口引用它，实际上HashMap和EnumMap互换，在客户端看来没有任何区别。
+		
+		结：
+			如果Map的key是enum类型，推荐使用EnumMap，既保证速度，也不浪费空间。
+
+			使用EnumMap的时候，根据面向抽象编程的原则，应持有Map接口。
+			
+			
+	使用TreeMap：https://www.liaoxuefeng.com/wiki/1252599548343744/1265117109276544
+		hashmap空间换时间，实现原理决定了内部key是无序的，遍历hashmap的key时，顺序是不可预测的(每个key都会遍历一次仅一次)。
+		SortedMap内部的对key进行排序，它是接口，实现类是TreeMap。
+			   ┌───┐
+			   │Map│
+			   └───┘
+				 ▲
+			┌────┴─────┐
+			│          │
+		┌───────┐ ┌─────────┐
+		│HashMap│ │SortedMap│
+		└───────┘ └─────────┘
+					   ▲
+					   │
+				  ┌─────────┐
+				  │ TreeMap │
+				  └─────────┘			
+		SortedMap保证遍历时按照key的顺序进行遍历，String根据字母，int根据数字。
+			类似：Map<Integer,String> m=new TreeMap<>();
+		使用TreeMap时放入的Key必须！必须！实现Comparable接口。
+		如果key的class没有实现Comparable接口，那么必须在创建TreeMap时同时指定一个自定义排序算法。
+			类似：
+				Map<Person, Integer> map = new TreeMap<>(new Comparator<Person>() {
+					public int compare(Person p1, Person p2) {
+						return p1.name.compareTo(p2.name);	将p1和p2对比然后排序。
+					}
+				});
+		TreeMap时不会使用equals()和hashCode()的，所以class不用进行这两个方法的重写。
+		
+		结：
+			SortedMap在遍历时严格按照Key的顺序遍历，最常用的实现类是TreeMap；
+
+			作为SortedMap的Key必须实现Comparable接口，或者传入Comparator；
+
+			要严格按照compare()规范实现比较逻辑，否则，TreeMap将不能正常工作。	
+			
+	使用Properties(属性)：
+		编写程序的配置文件，它的key-value一般都是String-String类型的，所以可用Map<String,String>表示。
+		配置文件非常常用，所以集合库提供了Properties表示一组配置，遗留原因，其内部本质上是Hashtable，
+		但只需要用到Properties自身关于读写配置的接口。
+		java默认配置文件以.Properties为扩展名，每行Key=value表示，#是注释。
+		
+		如：#setting.properties，最后打开的文件
+			last_open_file=/data/hello.txt
+		读取步骤：创建Properties实例。
+				  调用load()读取文件。
+				  调用getProperty()获取配置。
+			读取例子：
+				String f="setting.properties";	//先用字符串设置配置文件名
+				Properties p=new Properties();	//创建Properties实例。
+				p.load(new java.io.FileInputStream(f));		//给定指定配置文件，load方法不知道什么意思。
+				String filepath=p.getProperty("last_open_file");	//其中的值是配置文件的Key。
+				
+				调用getProperty()获取配置时，key不存在将返回null。也可以提供默认值，当key不存在时返回默认值。
+				也可从classpath读取.properties文件，因为load(InputStream)方法接收一个InputStream实例，
+				表示一个字节流1，它不一定是文件流，也可以是从jar包中读取的资源流：
+					Properties props = new Properties();
+					props.load(getClass().getResourceAsStream("/common/setting.properties"));
+				如果有多个.properties文件，可反复调用load()读取，后读取的key-value会覆盖已读取的key-value：
+					Properties props = new Properties();
+					props.load(getClass().getResourceAsStream("/common/setting.properties"));
+					props.load(new FileInputStream("C:\\conf\\setting.properties"));
+					以上的常用法是，将默认配置文件放入classpath中后，根据及其环境编写另一个配置文件，覆盖某些配置。
+					使用Properties时不要调用从Hashtable继承下来的方法。
+		写入配置文件：
+			通过setProperty()修改了Properties实例，可将配置写入方法，方便下次启动获得最新配置，
+			写入配置文件使用store()方法：
+				Properties props = new Properties();
+				props.setProperty("url", "http://www.liaoxuefeng.com");
+				props.setProperty("language", "Java");
+				props.store(new FileOutputStream("C:\\conf\\setting.properties"), "这是写入的properties注释");
+		编码：
+			早期的java.properties编码是ascii编码，从JDK9开始，java的.properties文件可使用UTF-8。
+			由于load(InputStream)默认ASCII编码读取字节流，但是会读到乱码，需要用另一个重载方法load(Reader)读取：
+				Properties props = new Properties();
+				props.load(new FileReader("settings.properties", StandardCharsets.UTF_8));
+				以上就能正常读取中文了，InputStream和Reader的区别是一个是字节流，一个是字符流。
+				字符流在内存中已经可以char表示了，因此不涉及编码问题。
+		结：
+			Java集合库提供的Properties用于读写配置文件.properties。.properties文件可以使用UTF-8编码。
+
+			可以从文件系统、classpath或其他任何地方读取.properties文件。
+
+			读写Properties时，注意仅使用getProperty()和setProperty()方法，不要调用继承而来的get()和put()等方法。
+			
+	使用Set：
+		set存储的是不重复的key和不需要存储映射的value。
+			将元素添加进Set<E>：boolean add(E e)
+			将元素从Set<E>删除：boolean remove(Object e)
+			判断是否包含元素：boolean contains(Object e)
+		set相当于只存储key不存value的map，可使用set去重元素。
+		放入set的元素和map的key类似，要正确实现equals()和hashCode()方法，否则元素无法正常放入set。
+		
+		常用的Set实现类是HashSet，HashSet仅仅是HashMap的一个简单封装。
+		set接口不保证有序，SortedSet接口保证元素有序：
+			HashSet是无序的，因为它实现了Set接口，并没有实现SortedSet接口；
+			TreeSet是有序的，因为它实现了SortedSet接口。
+			   ┌───┐
+			   │Set│
+			   └───┘
+				 ▲
+			┌────┴─────┐
+			│          │
+		┌───────┐ ┌─────────┐
+		│HashSet│ │SortedSet│
+		└───────┘ └─────────┘
+					   ▲
+					   │
+				  ┌─────────┐
+				  │ TreeSet │
+				  └─────────┘
+		TreeSet和TreeMap要求一样，提娜佳元素必须正确实现Comparable接口，不实现的话，创建TreeSet时必须传入Comparator对象。
+		
+	使用Queue(队列)：
+		队列，是一个先进先出的有序列表。和list的区别是：
+			list可在任意位置删除增加元素。
+			Queue只有两个操作：
+				将元素添加到队列尾部。
+				从队列头部取出元素。
+		队列接口Queue以下的方法：
+			List接口		Queue接口
+			boolean add()	boolean fooer()	添加元素到队列末尾
+			E remove()		E poll()	获取队首元素并从队列删除
+			E element()		E peek()	获取队首元素但不删除
+			int size()队列长度。
+			list和queue的获取首元素方法好像不能通用。
+			两个方法的行为是不同的：
+								throw Exception		返回false或true
+				add()			boolean offer()		添加元素到末尾
+				E remove()		E poll()			取队首元素并删除
+				E element()		E peek()			取队首元素但不删除
+				比如add添加失败的话可以选择抛出异常，offer添加失败的话返回false。
+				如果remove获取元素失败就会抛出异常，poll获取元素失败时就会返回null。
+				以上两个例子就是使用场景不同，根据需求使用list或queue还有以下的方法。
+				不要将null添加到队列中，否者pool时，很难确定取到了null还是队列为空返回的null。
+		LinkedList实现了List也实现了Queue，使用时当作list就获取list的引用，
+										   当作queue就获取queue的引用。
+		廖雪峰老师原话：始终按照面向抽象编程的原则编写代码，可以大大提高代码的质量。								   
+		结：
+			队列Queue实现了一个先进先出（FIFO）的数据结构：
+
+			通过add()/offer()方法将元素添加到队尾；
+			通过remove()/poll()从队首获取元素并删除；
+			通过element()/peek()从队首获取元素但不删除。
+			要避免把null添加到队列。	
+	
+	
+	使用PriorityQueue(优先队列)：
+		queue是先进先出的队列，但是数据都是进入尾部，PriorityQueue给元素设置优先级，
+		对此调用remove()或poll()，返回总是优先级高的元素，放入PriorityQueue元素要实现Comparable接口，
+		priorityQueue根据元素排序顺序决定优先级。
+		详细例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1265120632401152
+		结：
+			PriorityQueue实现了一个优先队列：从队首获取元素时，总是获取优先级最高的元素。
+
+			PriorityQueue默认按元素比较的顺序排序（必须实现Comparable接口），也可以通过Comparator自定义排序算法（元素就不必实现Comparable接口）。
+			
+	使用Deque(双队列)：
+		双队列允许两头进，两头出，Deque接口实现双端队列：	
+			既可以添加到队尾，也可以添加到队首；
+			既可以从队首获取，又可以从队尾获取。
+		
+		Queue和Deque进出队列方法：
+									Queue					Deque
+				添加元素到队尾		add(E e) / offer(E e)	addLast(E e) / offerLast(E e)			添加队尾
+				取队首元素并删除	E remove() / E poll()	E removeFirst() / E pollFirst()			取首并删除
+				取队首元素但不删除	E element() / E peek()	E getFirst() / E peekFirst()			取首不删除
+				添加元素到队首		无						addFirst(E e) / offerFirst(E e)			添加队首
+				取队尾元素并删除	无						E removeLast() / E pollLast()			取尾并删除
+				取队尾元素但不删除	无						E getLast() / E peekLast()				取首不删除
+		例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1265122668445536	
+		Deque扩展自Queeu。
+		所以Queue的add/offer方法Deque也能使用，但还是使用addFirst和offerFirst，因为能明确看出语句的作用。
+		Deque是接口，实现类有ArrayDeque和LinkedList。
+		LinkedLint是List、Queue、Deque。使用时用特定的接口引用，因为接口层次更高，并且接口本身定义方法代表特定用途。
+		！！！面向接口编程一个原则就是：尽量持有接口，而不是具体实现类。
+		
+		结：
+			Deque实现了一个双端队列（Double Ended Queue），它可以：
+				将元素添加到队尾或队首：		addLast()/offerLast()/addFirst()/offerFirst()；
+				从队首／队尾获取元素并删除：	removeFirst()/pollFirst()/removeLast()/pollLast()；
+				从队首／队尾获取元素但不删除：	getFirst()/peekFirst()/getLast()/peekLast()；
+				
+				总是调用xxxFirst()/xxxLast()以便与Queue的方法区分开；
+				避免把null添加到队列。
+			
+	使用Stack(堆栈)：
+		栈最关键的方法：
+			入栈	push()
+			出栈	pop()
+		栈方法：
+			boolean empty()	判断栈是否为空
+			E peek()	返回栈顶对象不移除
+			E pop()		返回栈顶对象并移除
+			E push(E item)	压入栈顶，添加数据
+			int search(Object o)	返回对象在栈的位置
+		search返回位置从栈顶开始计数，栈顶为1，不再栈顶元素返回-1，可通过此方法的返回值判断栈是否存在需要的元素。
+		推荐使用Deque接口实现栈。
+		
+		栈是后进先出的数据结构。
+		就像以下，和先进先出的区别就是将一段封死：
+			           ───────────────────────────────┐
+			  (\(\       (\(\    (\(\    (\(\    (\(\ │
+			 (='.') <─> (='.')  (='.')  (='.')  (='.')│
+			O(_")")    O(_")") O(_")") O(_")") O(_")")│
+					   ───────────────────────────────┘
+		数据是一直往栈中压入(push)，最后压入的元素最早弹出(pop)。
+		stack栈只有入栈和出栈操作：
+			把元素压栈：push(E)；
+			把栈顶的元素“弹出”：pop(E)；
+			取栈顶元素但不弹出：peek(E)。
+			
+		java中可用deque实现stack功能：
+			把元素压栈：push(E)/addFirst(E)；
+			把栈顶的元素“弹出”：pop(E)/removeFirst()；
+			取栈顶元素但不弹出：peek(E)/peekFirst()。
+			
+		stack没有单独接口，因为有个遗留类也叫stack，只能用deque接口模拟stack。
+		
+		JVM创建方法调用栈，调用一个方法时，将参数压栈后执行对应方法，
+		方法返回时，返回值压栈，调用方法通过出栈操作获得方法返回值。
+		方法调用栈有容量限制，嵌套调用过多会造成栈溢出，引发StackOverflowError。
+		
+		栈进制转换：https://www.liaoxuefeng.com/wiki/1252599548343744/1265121668997888#0
+	
+
+	使用Iterator(迭代器)：
+		迭代器就是在不知带具体内容的情况下能循环遍历集合的作用，我的理解。
+		要迭代集合时该集合要实现Iterator接口，编写Iterator时可用一个内部类实现Iterator接口，
+		此内部类可直接访问对应外部类的所有字段和方法。
+		
+		编写迭代器的例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1265124784468736
+		结：
+			Iterator是一种抽象的数据访问模型。使用Iterator模式进行迭代的好处有：
+
+			对任何集合都采用同一种访问模型；
+			调用者对集合内部结构一无所知；
+			集合类返回的Iterator对象知道如何迭代。
+			Java提供了标准的迭代器模型，即集合类实现java.util.Iterable接口，返回java.util.Iterator实例。
+			
+			
+	使用Collections(合类，集合类，工具类)：
+		Collections是JDK提供的工具类，提供一些静态方法，能更方便操作各种集合。
+		
+		我们一般看方法名和参数就可以确认Collections提供的该方法的功能。例如，对于以下静态方法：
+			public static boolean addAll(Collection<? super T> c, T... elements) { ... }	
+			addAll()方法可以给一个Collection类型的集合添加若干元素。因为方法签名是Collection，所以我们可以传入List，Set等各种集合类型。
+			
+		创建空集合：
+			Collections提供方法创建一个单元素集合。
+				创建一个元素的List：List<T> singletonList(T o)
+				创建一个元素的Map：	Map<K, V> singletonMap(K key, V value)
+				创建一个元素的Set：	Set<T> singleton(T o)
+			返回的单元素集合是不可变集合，无法香气中添加或删除元素。
+			也能用各个集合接口提供的of(T...)方法创建单元素集合，以下方法效果一样：
+				List<String> list1 = List.of("apple");
+				List<String> list2 = Collections.singletonList("apple");
+			实际上of更方便点，因为即可创建空集合，也能创建单元素集合，还可以创建任意个元素集合：
+				List<String> list1 = List.of(); // empty list
+				List<String> list2 = List.of("apple"); // 1 element
+				List<String> list3 = List.of("apple", "pear"); // 2 elements
+				依次类推，可创建任意的elements(元素)。
+		排序(sort)：
+			Collections可对List进行排序，排序会直接修改list元素位置，因此必须传入可变list：
+				Collections.sort(集合);
+		洗牌(shuffle)：
+			Collections提供洗牌算法，传入个有序list，随机打乱内部元素，相当于洗牌效果：
+				Collections.shoffle(集合);
+		不可变集合：
+			提供方法及那个可变集合封装成不可变集合：
+				封装成不可变List：List<T> 	unmodifiableList(List<? extends T> list)
+				封装成不可变Set： Set<T> 	unmodifiableSet(Set<? extends T> set)
+				封装成不可变Map： Map<K, V> unmodifiableMap(Map<? extends K, ? extends V> m)
+			这种封装是通过创建一个代理对象，拦截掉所有修改方法实现的：
+				不可变集合是，不能对此集合进行删除添加，效果如下
+				List<String> list = new ArrayList<>();
+				List<String> immutable = Collections.unmodifiableList(list);
+				immutable.add("orange"); // UnsupportedOperationException!
+			对不可变集合做出增删改会报UnsupportedOperationException异常。
+			但是对原始的可变集合进行增删是可以的，并且会直接影响封装后的不可变集合：
+				List<String> mutable = new ArrayList<>();
+				List<String> immutable = Collections.unmodifiableList(mutable);
+				mutable.add("orange");
+				直接对可变list进行添加删除就会影响不可变集合，而且查询可变还是不可变集合都能看到添加的信息。
+			想将可变集合封装成不可变，so，返回集合后，立即扔掉可变集合引用以保证后续操作不会意外改变原始操作
+			对象，从而造成不可变集合变化。
+
+		线程安全集合：
+			Collections还提供了一组方法，可以把线程不安全的集合变为线程安全的集合：
+				变为线程安全的List：List<T>  synchronizedList(List<T> list)
+				变为线程安全的Set： Set<T>   synchronizedSet(Set<T> s)
+				变为线程安全的Map： Map<K,V> synchronizedMap(Map<K,V> m)
+			从Java5开始引入更高效的并发集合类，所以上面几个方法没什么用了。
+		
+		结：
+			Collections类提供了一组工具方法来方便使用集合类：
+				创建空集合；
+				创建单元素集合；
+				创建不可变集合；
+				排序／洗牌等操作。
+	
+	Collection和Collections的区别：
+		Collection是集合体系最顶层，包含集合体系共性，简而言之就是集合上级接口，继承它的接口有List，Set等。
+		Collections是工具类，方法都是用于操作Collection，提供静态方法实现对各集合的搜索、排序、线程安全等操作。
+		
+	
+
+IO流：
+		io流是数据从内存到硬盘的输入或输出的操作，
+		input输入，将外部数据如硬盘中的文件读取到内存，或从网络读取数据到内存中。
+		output输出，将数据从内存写入到文件中，或从内存输出到网络中。
+		因为代码在内存中运行，数据也必须读到内存中，不论是byte数组又或是字符串等等。
+		因为内存有易失性特点，所以处理后的代码要以某种方式输出，像写入到文件中进行保存。
+		IO是一种顺序读写数据的模式，特点是单向流动，数据像自来水一样在水管中流动，所以称为IO流。
+		
+		IO的字节流(传输的自小单位是byte)：
+			InputStream(字节输入流)：从外部将数据读入到内存中。
+			OutputStream(字节输出流)：从内存中将数据输出到文件或网络中。
+			
+		IO的字符流(传输的自小单位是char)：
+			Reader(字符输入流)：从外部将数据读入到内存中。
+			Writer(字节输出流)：从内存中将数据输出到文件或网络中。
+				
+		Reader和Writer本质上是能自动编解码的InputStream和OutputStream。
+
+			
+		
+		使用Reader，数据源虽然是字节，但我们读入的数据都是char类型的字符，原因是Reader内部把读入的byte做了解码，转换成了char。
+		使用InputStream，我们读入的数据和原始二进制数据一模一样，是byte[]数组，但是我们可以自己把二进制byte[]数组按照某种编码转换为字符串。		
+		
+		同步异步：
+			同步IO，读写时代码必须等待数据返回后才继续执行后续代码，有点是编写简单，缺点是CPU执行效率低。
+			异步IO，读写时仅发出请求，后立即执行后续代码，有点是CPU执行效率高，缺点是代码复杂。
+			java包，java.io提供同步，java.nio提供异步。
+			InputStream、OutputStream、Reader、Writer都是同步IO的抽象类，具体实现类，文件为例，FileInputStream、FileOutputStream、FileReader、FileWrite。
+			
+			同步必须等待或主动询问IO是否完成，完成后才能继续执行其他操作。
+			异步不需要等待结构就可以执行其他操作，如常见的中断。
+			
+			同步IO模型：
+				阻塞：用户进程发起一个IO操作，必须等待IO操作的完成，当真正完成IO操作后，进程才能运行。
+				非阻塞：用户进程发起IO操作后可返回做其他事情，但用户进程要时不时询问IO操作是否就绪，要求用户进程不停询问，从而引发不必要的CPU资源浪费。
+			异步IO模型：
+				阻塞：应用发起一个IO操作后，不等待内核IO操作完成，等内核完成IO操作后会通知应用程序。由于select函数本身的实现方式是阻塞的，所以该模型是阻塞IO型。
+				非阻塞：用户进程需要发起一个IO操作后立即返回，IO操作真正完成后，应用程序会得到IO操作完成的同志，此时用户进程子要对数据进行处理即可，不需要进行
+						实际的IO读写操作，因为真正的IO读写操作已经由内核完成了。
+		
+		javaIO分三个部分：
+			流式：IO主体部分
+			非流式：包含辅助流式部分类，file、RandomAccessFile、FileDescriptor等类。
+			其他类：文件读取部分与安全相关类，SerializablePermission类，以及本地操作系统相关的文件系统类：
+					FileSystem、Win32FileSystem和WinNTFlieSystem。
+		
+		IO中主要常用类：
+			 1. File（文件特征与管理）：用于文件或者目录的描述信息，例如生成新目录，修改文件名，删除文件，判断文件所在路径等。
+
+			 2. InputStream（二进制格式操作）：抽象类，基于字节的输入操作，是所有输入流的父类。定义了所有输入流都具有的共同特征。
+
+			 3. OutputStream（二进制格式操作）：抽象类。基于字节的输出操作。是所有输出流的父类。定义了所有输出流都具有的共同特征。
+
+			 4.Reader（文件格式操作）：抽象类，基于字符的输入操作。
+
+			 5. Writer（文件格式操作）：抽象类，基于字符的输出操作。
+
+			 6. RandomAccessFile（随机文件操作）：一个独立的类，直接继承至Object.它的功能丰富，可以从文件的任意位置进行存取（输入输出）操作。
+		
+		IO详细参考：https://blog.csdn.net/weixin_38964895/article/details/80885275?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522159549220519195162515173%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=159549220519195162515173&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_click~default-1-80885275.first_rank_ecpm_v3_pc_rank_v2&utm_term=IO&spm=1018.2118.3001.4187
+		结：
+			IO流是一种流式的数据输入/输出模型：
+
+			二进制数据以byte为最小单位在InputStream/OutputStream中单向流动；
+
+			字符数据以char为最小单位在Reader/Writer中单向流动。
+
+			Java标准库的java.io包提供了同步IO功能：
+
+			字节流接口：InputStream/OutputStream；
+
+			字符流接口：Reader/Writer。		
+				
+				
+	File对象：	
+		各种例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1298069154955297
+		file对象主要用来操作文件和目录，对文件进行存储等待。
+		创建file对象需要传入文件路径：
+			File f = new File("C:\\Windows\\notepad.exe");
+			路径是虚假的也不会报错。
+		构造file对象时，可传入绝对路径，也可传入相对路径，绝对路径以根目录开头的完整路径。
+		相对路径前加上当前目录jiu
+			绝对路径：C:\\。。。。。。什么的。
+			相对路径：.\\test\\tt	路径前加上当前目录如：C:\\test\\tt or C:\\faizi\\test\\tt
+					  ..\\test\\tt
+					  test\\tt
+			可用.表示当前目录，..表示上级目录
+		
+		file对象3种路径形式：
+			getPath()返回构造方法传入的路径。
+			getAbsolutePath()返回绝对路径。
+			getCanonicalPath()和绝对路径类似但返回规范路径，比如：
+				C:\test\.\a转换成规范C:\test\a
+		
+		文件和目录：
+			file对象既可以表示文件也可以表示目录，构建file对象不会导致任何磁盘操作所以，传入错误的文件或目录也没关系。
+			只有调用file对象某些方法的时候，才真正进行磁盘操作。
+			file方法：
+				isFile()判断file对象是否是文件
+				isDirectory()判断file对象是否是目录
+			另外file对象获取到文件时，可判断文件权限和大小：
+				boolean canRead()是否可读
+				boolean canWrite()是否可写
+				boolean canExecute()是否可执行
+				long	length()文件字节大小
+		
+		创建删除文件：
+			createNewFile()创建新文件。
+			delete()删除该文件
+			可创建临时文件：
+				createTempFile()创建临时文件。
+				deleteOnExit()JVM退出时自动删除该文件。
+		
+		遍历文件和目录：
+			file表示目录时，可使用方法列出目录下的文件和子目录名，并且listFiles()提供一系列重载方法，
+			可过滤不想要的文件和目录：
+				listFile()列出所有文件和子目录。
+			file表示一个目录的话可通过如下方法进行删除创建目录：
+				boolean mkdir()创建当前File对象表示的目录。
+				boolean mkdirs()创建当前file对象表示的目录，并将不存在的父目录也创建出来。
+				boolean delete()删除当前File对象表示的目录，当前目录必须为空才能创建成功。
+		Path：
+			此对象位于java.nio.file包下，path和file类似但操作更简单。
+			Paths.get(".", "project", "study");构造一个path对象此语句创建的路径是.\project\study。
+			path也能使用file的方法：
+				toAbsolutePath()	转为绝对路径
+				normalize()			转为规范路径
+				toFile()			转为File对象
+				for(Path p : Paths.get("..").toAbsolutePath())	直接遍历Path但是还没看明白(..)作用。
+			对目录进行复杂凭借、遍历等操作使用path对象更方便。
+		结：
+			Java标准库的java.io.File对象表示一个文件或者目录：
+
+			创建File对象本身不涉及IO操作；
+			可以获取路径／绝对路径／规范路径：getPath()/getAbsolutePath()/getCanonicalPath()；
+			可以获取目录的文件和子目录：list()/listFiles()；
+			可以创建或删除文件和目录。
+
+		
+	InputStream(输入流)：
+		
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+					
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+	
+	
+	

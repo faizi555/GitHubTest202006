@@ -1,12 +1,21 @@
+在eee上进行bug测试
+
+
 这是个测试文件
 git is distributed version control system
 git is free sofrware distributed under the gpl
 git has a mutable index called stage
 git tracks changes of files
 
-测试在master对eee进行提交推送
+测试masterbug修复
 
-this eee de commit
+在test分支上修复bug并合并master
 
 
 在notebook进行commit
+
+1进行工作，隐藏的工作内容
+
+
+
+github远程仓库
