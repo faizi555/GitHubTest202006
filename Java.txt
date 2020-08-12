@@ -3457,28 +3457,130 @@ IO流：
 			
 			
 	最佳实践：
+		有新旧API，除非涉及遗留代码，否则使用新的。
 		
-			
-			
-			
+		旧API转新API：
+			旧式Date或Calendar转为新的API对象，可通过toInstant()方法转为Instant对象，再转换为ZonedDateTime：
+				// Date -> Instant:
+				Instant ins1 = new Date().toInstant();
+
+				// Calendar -> Instant -> ZonedDateTime:
+				Calendar calendar = Calendar.getInstance();
+				Instant ins2 = Calendar.getInstance().toInstant();
+				ZonedDateTime zdt = ins2.atZone(calendar.getTimeZone().toZoneId());
+				旧的TimeZone提供了toZoneId()，将自己变成新的ZoneId。
+		
+		
+		新API转旧API：
+			新ZonedDateTime转旧API，只能借助long时间戳做中转：
+				// ZonedDateTime -> long:
+				ZonedDateTime zdt = ZonedDateTime.now();
+				long ts = zdt.toEpochSecond() * 1000;
+
+				// long -> Date:
+				Date date = new Date(ts);
+
+				// long -> Calendar:
+				Calendar calendar = Calendar.getInstance();
+				calendar.clear();
+				calendar.setTimeZone(TimeZone.getTimeZone(zdt.getZone().getId()));
+				calendar.setTimeInMillis(zdt.toEpochSecond() * 1000);
+				新ZoneId转为旧TimeZone，需要ZoneId.getId()返回String完成。
+		
+		数据库中存储日期和时间：
+			在数据库中，也存在几种日期和时间类型：
+
+				DATETIME：表示日期和时间；
+				DATE：仅表示日期；
+				TIME：仅表示时间；
+				TIMESTAMP：和DATETIME类似，但是数据库会在创建或者更新记录的时候同时修改TIMESTAMP。
 			
 					
+			在使用Java程序操作数据库时，我们需要把数据库类型与Java类型映射起来。下表是数据库类型与Java新旧API的映射关系：
+
+				数据库			对应Java类（旧）	对应Java类（新）
+				DATETIME		java.util.Date		LocalDateTime
+				DATE			java.sql.Date		LocalDate
+				TIME			java.sql.Time		LocalTime
+				TIMESTAMP		java.sql.Timestamp	LocalDateTime
+			数据库中存储最常用的是时刻(Instant)，因为有时刻信息，可根据用户自己选择的时区，显示正确的本地实际那，最好用long表示，
+			数据库存储为BigInt类型。
+		
+			通过long时间戳，编写timestampToString()方法，为不同用户不同偏好显示不同的本地时间：
+				 long ts = 1574208900000L;
+					System.out.println(timestampToString(ts, Locale.CHINA, "Asia/Shanghai"));
+					System.out.println(timestampToString(ts, Locale.US, "America/New_York"));
+				}
+
+				static String timestampToString(long epochMilli, Locale lo, String zoneId) {
+					Instant ins = Instant.ofEpochMilli(epochMilli);
+					DateTimeFormatter f = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT);
+					return f.withLocale(lo).format(ZonedDateTime.ofInstant(ins, ZoneId.of(zoneId)));
+				}
+				输出结果：	2019年11月20日 上午8:15
+							Nov 19, 2019, 7:15 PM
 			
+		结：
+			处理日期和时间时，尽量使用新的java.time包；
+
+			在数据库中存储时间戳时，尽量使用long型时间戳，它具有省空间，效率高，不依赖数据库的优点。	
+
+
+
+
+单元测试(JUnit)：			
+	介绍java最常用测试框架JUnit，介绍如何编写单元测试。
+	
+	编写JUnit测试：
+		测试驱动开发，先编写接口，再编写测试。
+		然后进行真正编写实现代码，一边写一边测，测试全通过表示编写实现完成：
+			编写接口
+			 │
+			 ▼
+			编写测试
+			 │
+			 ▼
+		┌─> 编写实现
+		│    │
+		│ N  ▼
+		└── 运行测试
+			 │ Y
+			 ▼
+			任务完成
+		这就是TDD：https://baike.baidu.com/item/TDD/9064369?fr=aladdin
+		
+		一般都是编写实现代码，需要对已有代码进行测试。
+		测试例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1304048154181666
+		测试的时候使用main方法则有很多缺点，一次只有一个main方法，不能将测试代码分离，再是没有打印出测试结果和期望结果。
+		
+		JUnit(测试框架)：
+			是哟个开源java单元测试框架，针对java设计使用广泛，是单元测试的标准框架。
+			好处是可以简单组织测试代码，随时运行JUnit给出成功的测试和失败测试，并可以生成测试报告，出了测试成功率，
+			也能统计测试代码覆盖率，高质量代码覆盖率在80%以上。
 			
+			测试用例可能有多个，当有多个时则需要选择用例上的@Test单独运行用例。
+			只有一个用例的话则可直接运行。
 			
+		单元测试好处：
+			可以保证单个方法按正确预期运行，修改某方法代码，只要其对应单元测试通过就认为正确。并且测试代码可作为示例代码，
+			演示如何调用该方法。
 			
+			使用JUnit进行单元测试可使用断言(Assertion)测试期望结果，方便组织和运行测试，并方便查看结果。Junit可直接在IDE运行，
+			方便集成到Maven自动化工具中运行。
 			
+			测试单元时遵循一定规范。
+			单元测试代码必须非常简单，能一下明白，不能再为测试代码编写测试。
+			每单元测试相互独立，不依赖运行顺序。
+			测试时覆盖常用测试用例，并注意测试边界条件，如输入为0、bull、空字符串""等等。
+		
+		结：
+			JUnit是一个单元测试框架，专门用于运行我们编写的单元测试：
+
+			一个JUnit测试包含若干@Test方法，并使用Assertions进行断言，注意浮点数assertEquals()要指定delta。
 			
-			
-			
-			
-			
-						
-			
-			
-			
-			
-			
+	
+
+	使用Fixture(固定代码)：
 			
 			
 			
