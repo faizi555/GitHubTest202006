@@ -3581,87 +3581,351 @@ IO流：
 	
 
 	使用Fixture(固定代码)：
+		JUnit提供编写测试前的准备，测试后清理的固定代码，称为Fixture。
+			@BeforeEach
+			public void setUp() {
+				this.calculator = new Calculator();
+			}
+		
+			@AfterEach
+			public void tearDown() {
+				this.calculator = null;
+			}
+			
+			@Test
+			void testAdd() {
+				assertEquals(100, this.calculator.add(100));
+				assertEquals(150, this.calculator.add(50));
+				assertEquals(130, this.calculator.add(-20));
+			}
+			
+			@BeforeEach注解是测试前的准备方法。
+			@AfterEach注解是测试后的清理方法。
+			以上两个注解的方法会在每个@Test注解方法前后自动运行：
+				for (Method testMethod : findTestMethods(CalculatorTest.class)) {
+					var test = new CalculatorTest(); // 创建Test实例
+					invokeBeforeEach(test);
+						invokeTestMethod(test, testMethod);
+					invokeAfterEach(test);
+				}
 			
 			
+			有些资源初始化或清理很繁琐，时间长。JUnit提供了@BeforeAll和@AfterAll，再运送所有@Test前后运行。
+				invokeBeforeAll(CalculatorTest.class);
+				for (Method testMethod : findTestMethods(CalculatorTest.class)) {
+					var test = new CalculatorTest(); // 创建Test实例
+					invokeBeforeEach(test);
+						invokeTestMethod(test, testMethod);
+					invokeAfterEach(test);
+				}
+				invokeAfterAll(CalculatorTest.class);
 			
 			
+		@BeforeAll和@AfterAll再所有@Test方法运行前后只运行一次，因此只能初始化静态变量：
+			@BeforeAll
+			public static void initDatabase() {}
+			@AfterAll
+			public static void dropDatabase() {}
 			
 			
+		编写Fixture方法：
+			1.实例变量，再@BeforeEach中初始化，@AfterEach中清理，在各个@Test方法中互不影响，因为是不同实例。
+			2.静态变量，在@BeforeEach中初始化，@AfterAll清理，在各个@Test方法中均是唯一实例，会影响各个Test方法。
+		
+		大多数情况下，使用@BeforeEach和AfterEach就够了。只是某些资源初始化时间过长不得不复用时才会使用@BeforeAll和@AfterAll。
+		
+		每次运行一个@Test方法前，JUnit首先创建一个XxxTest实例，每个@Test方法内部的成员变量都是独立的，不能也无法将成员变量的
+		状态从@Test方法带到另一个@Test方法。
+		
+		结：
+			编写Fixture是指针对每个@Test方法，编写@BeforeEach方法用于初始化测试资源，编写@AfterEach用于清理测试资源；
+
+			必要时，可以编写@BeforeAll和@AfterAll，使用静态变量来初始化耗时的资源，并且在所有@Test方法的运行前后仅执行一次。	
+						
+			
+	
+	异常测试：
+		对可能抛出的异常进行测试，是很重要的环节，要针对可能导致异常的情况进行测试。
+		对参数n进行判断，小于0就抛出异常。
+			if (n < 0) {
+				throw new IllegalArgumentException();
+			}
+		循环一次*一次变量
+			long r = 1;
+			for (long i = 1; i <= n; i++) {
+				r = r * i;
+			}
+			return r;
+			
+		如果n值为负数则，直接抛出IllegalArgumentException异常。
+		JUnit测试@Test方法：
+			@Test
+			void testNegative() {
+				assertThrows(IllegalArgumentException.class, new Executable() {
+					@Override
+					public void execute() throws Throwable {
+						Factorial.fact(-1);
+					}
+				});
+			}
+			
+			JUnit提供assertThrows()来期望捕获一个指定的异常。第二个参数Executable封装了我们要执行的会产生异常的代码。
+			当我们执行Factorial.fact(-1)时，必定抛出IllegalArgumentException。assertThrows()在捕获到指定异常时表示通
+			过测试，未捕获到异常，或者捕获到的异常类型不对，均表示测试失败。
+			
+			Executeble匿名类比较繁琐，Java8引入函数式编程，简写如下：
+				@Test
+				void testNegative() {
+					assertThrows(IllegalArgumentException.class, () -> {
+						Factorial.fact(-1);
+					});
+				}
+				->语法就是函数式接口的实现代码，通过这种固定代码编写能抛出异常的语句。
 			
 			
+		结：
+			测试异常可以使用assertThrows()，期待捕获到指定类型的异常；
+
+			对可能发生的每种类型的异常都必须进行测试。	
 			
 			
+	条件测试：
+		某些方法不需要运行可标记@Disabled，被此注释标记的方法测试时不会运行。
+		@Disabled这种注解称为条件测试，JUnit根据不同条件注解，解决是否运行当前的@Test方法。
+		例子：
+			public String getConfigFile(String filename) {
+				String os = System.getProperty("os.name").toLowerCase();
+				if (os.contains("win")) {
+					return "C:\\" + filename;
+				}
+				if (os.contains("mac") || os.contains("linux") || os.contains("unix")) {
+					return "/usr/local/" + filename;
+				}
+				throw new UnsupportedOperationException();
+			}
 			
-					
+			如果测试这个方法在Windows上运行，但是Windows和Linux路径不同，分别作两个测试方法：
+				@Test
+				@EnabledOnOs(OS.WINDOWS)
+				void testWindows() {
+					assertEquals("C:\\test.ini", config.getConfigFile("test.ini"));
+				}
+
+				@Test
+				@EnabledOnOs({ OS.LINUX, OS.MAC })
+				void testLinuxAndMac() {
+					assertEquals("/usr/local/test.cfg", config.getConfigFile("test.cfg"));
+				}
+			
+			@EnableOnOs就是一个条件测试判断。
+			如果某方法不用再Windows上运行使用@DisabledOnOs(OS.WINDOWS)注解，将其改为OS.LINUX就是不在Linux上运行。
+			在java9以上版本执行测试，加上@DisabledOnJre(JRE.JAVA_8)。
+			只在64位操作系统上运行，使用@EnabledIfSystemProperty(named = "os.arch", matches = ".*64.*")。
+			传入环境变量DEBUG=true才能测试，使用@EnabledIfEnvironmentVariable(named = "DEBUG", matches = "true")。
+		
+		结：
+			条件测试是根据某些注解在运行期让JUnit自动忽略某些测试。		
 			
 			
+	
+	参数化测试：
+		待测试的输入和输出是一组数据：将测试数据组织起来，用不同的测试数据调用相同的测试方式。
+		参数测试和普通测试区别，测试方法需要接受至少一个参数，后，传入一组参数反复测试。
+		JUnit提供一个@ParameterizedTest注解，用以进行参数化测试。
+		
+		对Math.abs()进行测试，测试：
+			@ParameterizedTest
+			@ValueSource(ints = { 0, 1, 5, 100 })
+			void testAbs(int x) {
+				assertEquals(x, Math.abs(x));
+			}
+			再将数据换成负数进行测试。
+			@ParameterizedTest是参数化测试的注解，而不是@Test。
+		
+		
+		如果编写StringUtils.capitalize()方法，会将字符串第一字母变为大写，后续变为小写：
+			 if (s.length() == 0) {
+				return s;
+			}
+			return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+			参数化测试，不但给输出还要预期输出，测试方法接受两个参数：
+				@ParameterizedTest
+				void testCapitalize(String input, String result) {
+					assertEquals(result, StringUtils.capitalize(input));
+				}
+			最合适的方式使用@MethodSource注解，允许编写同名的静态方法提供测试参数：
+				static List<Arguments> testCapitalize() {
+					return List.of( // arguments:
+							Arguments.arguments("abc", "Abc"), //
+							Arguments.arguments("APPLE", "Apple"), //
+							Arguments.arguments("gooD", "Good"));
+				}
+				提供一个静态方法，返回一组测试数据，每个参数包含两个String，正好对应测试方法两个参数传入。
+			
+			另一种传入方式使用@CsvSource，每一字符串表示一行，一行包含的若干参数使用，分割：
+				@ParameterizedTest
+				@CsvSource({ "abc, Abc", "APPLE, Apple", "gooD, Good" })
+				void testCapitalize(String input, String result) {
+					assertEquals(result, StringUtils.capitalize(input));
+				}
+			
+			如果测试数据过多，@CsvSource很不方便，此时将测试数据放入独立的CSV文件下，标注上@CsvFileSource：
+				@ParameterizedTest
+				@CsvFileSource(resources = { "/test-capitalize.csv" })
+				void testCapitalizeUsingCsvFile(String input, String result) {
+					assertEquals(result, StringUtils.capitalize(input));
+				}
+				JUnit只在classpath中查找指定的CSV文件，因此，test-capitalize.csv文件放入test目录下：
+				文件实例内容：
+					apple, Apple
+					HELLO, Hello
+					JUnit, Junit
+					reSource, Resource
+						
+		结：
+			使用参数化测试，可以提供一组测试数据，对一个测试方法反复测试。
+
+			参数既可以在测试代码中写死，也可以通过@CsvFileSource放到外部的CSV文件中。	
 			
 			
+
+正则表达式：
+	是用来匹配字符串的有力工具，Java内置了强大的表达式支持。
+	
+	正则表达式简介：
+		判断字符串是否为电话号码、邮箱、时间等等，都要为其创建单独规则。
+		判断手机号码实例(粗略判断)：
+			boolean isValidMobileNumber(String s) {
+				// 是否是11位？
+				//判断字符串长度是否符合手机号的长度，如果不符合返回false
+				if (s.length() != 11) {
+					return false;
+				}
+				// 每一位都是0~9：
+				//字符串长度为限制进行循环，使用当此循环的字符进行判断，时候小于0或大于9，符合条件则返回false。
+				for (int i=0; i<s.length(); i++) {
+					char c = s.charAt(i);
+					if (c < '0' || c > '9') {
+						return false;
+					}
+				}
+				return true;
+			}
+		以上判断太过繁琐，使用正则表达式更为简便。
+		如判断手机号长度使用：
+			\d{11}。
+		
+		正则表达式的好处，一个正则表达式就是一个描述规则的字符串，只要编写正确的规则，就能让正则表达式引擎判断字符串是否符合规则。
+		正则是一套规则，可用于任何语言，Java标准库java.util.regex包内置正则表达式引擎。
+		判断年份是否是20XX年：
+			正则为20\d\d，\d表示0~9任意一个数字
+			正则在java中表示20\\d\\d，java字符串中\\表示\。
+			字符串.matches(regex) 比较方法。
+		.matches();	用于检测字符串是否匹配给定的正则表达式。	
 			
-			
-			
-			
-			
-			
+		结：
+			正则表达式是用字符串描述的一个匹配规则，使用正则表达式可以快速判断给定的字符串是否符合匹配规则。
+			Java标准库java.util.regex内建了正则表达式引擎。	
 						
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+	匹配规则：
+		正则表达式从左到右匹配。
+		如果其中有特殊字符，需要使用\转义，如，a\&c其中\&用来匹配特殊字符&的，只能匹配a&c。
+		使用字符串.matches(匹配标准字符串)方法比较字符串是否一致。
+		
+		\&		匹配特殊字符&，Java中表示为\\&。
+		\.		匹配任意字符，只匹配一个字符，java表示为\\。
+		\d		匹配0~9任意数字，java表示为\\d。
+		\D		匹配非数字，如A、#等等\d不能匹配的。
+		\w		匹配一个字母、下划线、数字，但是不能匹配#和空格等字符。java表示为\\w。
+		\W		匹配\w不能匹配的字符。
+		\s		匹配空格字符还有tab字符(java中表示\t)，java表示为\\s。
+		\S		匹配\不能匹配的字符。
+		重复匹配：
+			*可以匹配任意字符包括0:
+				A：因为\d*可以匹配0个数字；
+				A0：因为\d*可以匹配1个数字0；
+				A380：因为\d*可以匹配多个数字380
+			+匹配至少一个数字：
+				\d+可以匹配一个数字0，也可以匹配多个数字123..等等，但是必须要匹配至少一个数字。
+			？匹配0或1个字符，超过一个就不能匹配：
+				A：因为\d?可以匹配0个数字；
+				A0：因为\d+可以匹配1个数字0
+			{n}精准指定n个字符，A\d{3}可以精确匹配：
+				A380：因为\d{3}可以匹配3个数字380。
+			{n~m}指定n~m个字符，A\d{3,5}可以精确匹配：
+				A380：因为\d{3,5}可以匹配3个数字380；
+				A3800：因为\d{3,5}可以匹配4个数字3800；
+				A38000：因为\d{3,5}可以匹配5个数字38000。
 					
 			
+		结：
+			单个字符的匹配规则如下：
+	
+				正则表达式			规则						可以匹配
+				A					指定字符					A
+				\u548c				指定Unicode字符				和
+				.					任意字符					a，b，&，0
+				\d					数字0~9						0~9
+				\w					大小写字母，数字和下划线	a~z，A~Z，0~9，_
+				\s					空格、Tab键					空格，Tab
+				\D					非数字						a，A，&，_，……
+				\W					非\w						&，@，中，……
+				\S					非\s						a，A，&，_，……
+				
+			多个字符的匹配规则如下：
+
+				正则表达式			规则						可以匹配
+				A*					任意个数字符				空，A，AA，AAA，……
+				A+					至少1个字符					A，AA，AAA，……
+				A?					0个或1个字符				空，A
+				A{3}				指定个数字符				AAA
+				A{2,3}				指定范围个数字符			AA，AAA
+				A{2,}				至少n个字符					AA，AAA，AAAA，……
+				A{0,3}				最多n个字符					空，A，AA，AAA	
 			
 			
 			
+	复杂匹配规则：
+	
+		匹配开头和结尾：
+			正则表达式进行多行匹配时，^表示开头，$表示结尾。例如，^A\d{3}$，可以匹配"A001"、"A380"。
+		匹配指定范围：
+			[....]中可匹配范围内的字符，如[123456789]可匹配到1~9，同样的效果使用[1-9]也行。
+			匹配大小写不限的十六进制数，如1Ab3c，可写成[0-9a-fA-F]，表示一共可匹配到一下任意范围的字符。
+				0-9：字符0~9；
+				a-f：字符a~f；
+				A-F：字符A~F。
+			如果要匹配6位十六进制数，前面讲过的{n}仍然可以继续配合使用：[0-9a-fA-F]{6}。
+			[...]还有一种排除法，即不包含指定范围的字符。假设我们要匹配任意字符，但不包括数字，可以写[^1-9]{3}
+				可以匹配"ABC"，因为不包含字符1~9；
+				可以匹配"A00"，因为不包含字符1~9；
+				不能匹配"A01"，因为包含字符1；
+				不能匹配"A05"，因为包含字符5。
+			
+		或规则匹配：
+			|链接的两个正则规则 是 或规则，AB|CD表示可以匹配AB或CD，也可以AB|CD|EF|....。
+		
+		使用括号：
+			同时指定规则learn java、learn php、和learn go，简单的规则learn\sjava|learn\sphp|learn\sgo，但是比较复杂，
+			可将部分提取使用(...)将子规则在其中进行表示learn\\s(java|php|go)，这里的话因为\\s是空格。
 			
 			
+		结：
+			复杂匹配规则主要有：
+				正则表达式		规则					可以匹配
+				^				开头					字符串开头
+				$				结尾					字符串结束
+				[ABC]			[…]内任意字符			A，B，C
+				[A-F0-9xy]		指定范围的字符			A，……，F，0，……，9，x，y
+				[^A-F]			指定范围外的任意字符	非A~F
+				AB|CD|EF		AB或CD或EF				AB，CD，EF				
 			
-			
-			
-			
-						
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-					
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-						
-			
-			
+	
+	
+	分组匹配：
+		
 			
 			
 			
