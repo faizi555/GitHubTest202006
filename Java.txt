@@ -3925,46 +3925,148 @@ IO流：
 	
 	
 	分组匹配：
+		(...)中写入子规则，如，learn\s(java|php|go)就可以更方便地匹配长字符串了。
+		并且(...)更重要的分组匹配。
+		String提供的indexOf()和substring()方法，从正则表达式匹配的字符串中提取字串没有通用性。
+		需要引入java.util.regex包，用Pattern对象匹配，匹配后获得一个Matcher对象，匹配成功就能直接从Matcher.group(index)返回子串。
+			Pattern p = Pattern.compile("(\\d{3,4})\\-(\\d{7,8})");
+			Matcher m = p.matcher("010-12345678");
+			if (m.matches()) {
+				String g1 = m.group(1);
+				String g2 = m.group(2);
+			Matcher.group(index)方法参数用1表示第一个字串，2表示第二个，传入0表示获得整个正则表达式匹配的字符串。
+			
+		Pattern(模式)：
+			分组提取的代码用的是java.util.regex包里面的Pattern类和Matcher类，这两种本质一样，String.matches()方法内部就是调用Pattern和Matcher类的方法。
+			反复使用String.matches()对同一个正则表达式进行多次匹配效率低，因为每次都会创建一样的Pattern对象，完全可以创建出Pattern对象，反复使用，
+			实现编译一次，多次匹配。
+			
+			Pattern pattern = Pattern.compile("(\\d{3,4})\\-(\\d{7,8})");
+			pattern.matcher("010-12345678").matches(); // true
+			pattern.matcher("021-123456").matches(); // true
+			pattern.matcher("022#1234567").matches(); // false
+			// 获得Matcher对象:
+			Matcher matcher = pattern.matcher("010-12345678");
+			if (matcher.matches()) {
+				String whole = matcher.group(0); // "010-12345678", 0表示匹配的整个字符串
+				String area = matcher.group(1); // "010", 1表示匹配的第1个子串
+				String tel = matcher.group(2); // "12345678", 2表示匹配的第2个子串
+				System.out.println(area);
+				System.out.println(tel);
+			}
+				
+			使用Matcher时，首先调用matches()判断是否匹配成功，匹配成功后，才能调用group()提取字符串。
+			利用提取字符串功能，获取区号和号码两部分。
+			
 		
+		结：
+			正则表达式用(...)分组可以通过Matcher对象快速提取子串：
+
+				group(0)表示匹配的整个字符串；
+				group(1)表示第1个子串，group(2)表示第2个子串，以此类推。
 			
 			
 			
 			
+	非贪婪匹配：
+		给定字符串表示的数字，判断该数字末尾0的个数：
+			"123000"：3个0
+			"10100"：2个0
+			"1001"：0个0
+		正则表达式：(\d+)(0*)；
+			Pattern pattern = Pattern.compile("(\\d+)(0*)");
+			Matcher matcher = pattern.matcher("1230000");
+			if (matcher.matches()) {
+				System.out.println("group1=" + matcher.group(1)); // "1230000"
+				System.out.println("group2=" + matcher.group(2)); // ""
+			}
+			第二字符串是空的。
+			
+			实际上，我们期望分组匹配结果是：
+
+				input	\d+		0*
+				123000	"123"	"000"
+				10100	"101"	"00"
+				1001	"1001"	""
+			但实际的分组匹配结果是这样的：
+
+				input	\d+			0*
+				123000	"123000"	""
+				10100	"10100"		""
+				1001	"1001"		""
+			
+		因为\d+确实可以匹配后面任意个0。
+		因为正则表达式默认使用贪婪匹配：任何规则，总是尽可能多向后匹配，因此\d+总是会将后面的0包含进来。
+		为了\d+减少,0*多匹配，必须\d+使用非贪婪匹配，在规则\d+后加上？表示非贪婪匹配：
+			Pattern pattern = Pattern.compile("(\\d+?)(0*)");
+			Matcher matcher = pattern.matcher("1230000");
+			if (matcher.matches()) {
+				System.out.println("group1=" + matcher.group(1)); // "123"
+				System.out.println("group2=" + matcher.group(2)); // "0000"
+			}
+			
+		(\d??)(9*)，\d?表示匹配0或1个数字，后面第二个？表示非贪婪匹配，给定字符串"9999"，匹配两个子串分别是“”，“9999”
+		因此\d?来说，匹配1个9，也可以匹配0个9，但是因为？表示非贪婪匹配，会尽量减少匹配，说以匹配0个9。
+		
+		
+		结：
+			正则表达式匹配默认使用贪婪匹配，可以使用?表示对某一规则进行非贪婪匹配。
+
+			注意区分?的含义：\d??。
+			
+			
+			
+	搜索和替换：
+		分割字符串：
+			使用正则表达式分割字符串可实现更加灵活的功能，String.split()方法传入真是正则表达式：
+			"a b c".split("\\s"); // { "a", "b", "c" }
+			"a b  c".split("\\s"); // { "a", "b", "", "c" }
+			"a, b ;; c".split("[\\,\\;\\s]+"); // { "a", "b", "c" }
+			因为输入往往不规范，所以将标签提出来，使用合适的正则表达式，可消除多个空格、混合，和；这些不规范输入，提取出规范的字符串。
+			
+		搜索字符串：
+			String s = "the quick brown fox jumps over the lazy dog.";
+			Pattern p = Pattern.compile("\\wo\\w");
+			Matcher m = p.matcher(s);
+			while (m.find()) {
+				String sub = s.substring(m.start(), m.end());
+				System.out.println(sub);
+			}
+			返回结果：	row
+						fox
+						dog
+			获取到Matcher对象后，不用调用matches()方法(因为匹配整个串定当返回false)，而是反复调用find()方法，整个串中搜索能匹配上\\wo\\w规则的子串，
+			并打印出来。比String.indexOf()灵活，因为搜索规则是3个字符：中间必须是o，前后两个必须是字符[A-Za-z0-9]。
+			
+		替换字符串：
+			正则表达式替换字符串直接调用String.replaceAll，第一个参数是正则表达式，第二个参数是待替换的字符串：
+				String s = "The     quick\t\t brown   fox  jumps   over the  lazy dog.";
+				String r = s.replaceAll("\\s+", " ");
+				System.out.println(r); // "The quick brown fox jumps over the lazy dog."
+				将不规则的连续空格分割句子按规则进行替换编程规范的句子。
+		
+		反向引用：
+			将搜索的指定字符串按规则进行替换比如前后各加一个<b>xxxx</b>，这个时候，使用replaceAll()的时候，
+			我们传入的第二个参数可以使用$1、$2来反向引用匹配到的子串。例如：
+				String s = "the quick brown fox jumps over the lazy dog.";
+				String r = s.replaceAll("\\s([a-z]{4})\\s", " <b>$1</b> ");
+				System.out.println(r);
+				输出结果：the quick brown fox jumps <b>over</b> the <b>lazy</b> dog.
+				效果是将任何4字符单词前后用<b>xxxx</b>括起来。实现替换的关键就在于" <b>$1</b> "，它用匹配的分组子串([a-z]{4})替换了$1。
+			
+			
+			
+		结：
+			使用正则表达式可以：
+				分割字符串：String.split()
+				搜索子串：	Matcher.find()
+				替换字符串：String.replaceAll()	
 			
 			
 			
 			
-			
-			
-			
-			
-			
-			
-					
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-						
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+加密与安全：
+	
 			
 			
 			
