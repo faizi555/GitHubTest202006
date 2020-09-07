@@ -4894,47 +4894,209 @@ IO流：
 					 ┌─────────────┐
 					 │ Terminated  │
 					 └─────────────┘
+			线程启动后，它可在Runnable、Blocked、Waiting和Timed Waiting这几个状态间切换，直到最后变成Terminated状态，线程终止。
 			
-			
-			
+		线程终止的原因有：
+			线程正常终止：run()方法执行到return语句返回；
+			线程意外终止：run()方法因为未捕获的异常导致线程终止；
+			对某个线程的Thread实例调用stop()方法强制终止（强烈不推荐使用）。
 					
+		一个线程可等待另一个线程直到运行结束，如，main线程在启动t线程后，可通过t.join()等待t线程结束后再继续运行：
+			Thread t = new Thread(() -> {
+            System.out.println("hello");
+			});
+			System.out.println("start");
+			t.start();
+			t.join();
+			System.out.println("end");
+			
+			当nain线程对线程对象t调用join()方法时，主线程将等待变量t表示的线程运行结束，即join就是等待该线程结束，后才继续往下执行自身线程。
+			所以以上代码，顺序main线程先打印start，t线程再打印hello，main线程最后再打印end。
+			
+			如果t线程已结束，对实例t调用join()会立刻返回，此外join(long)的重载方法也可指定一个等待时间，超过事件后不再等待。
 			
 			
+		结：
+			Java线程对象Thread的状态包括：New、Runnable、Blocked、Waiting、Timed Waiting和Terminated；
+
+			通过对另一个线程对象调用join()方法可以等待其执行结束；
+
+			可以指定等待时间，超过等待时间线程仍然没有结束就不再等待；
+
+			对已经运行结束的线程调用join()方法会立刻返回。	
+	
+	
+	
+	
+	中断线程：
+		如果线程需要执行一个长时间任务，就可能中断线程。中断线程就是其他线程给该线程发一个信号，该线程收到信号后结束执行run()方法，
+		使自身线程能立刻结束运行。
+		
+		假设从网络下载100M的文件，网速很慢，用户不耐烦，下载中点击取消，此时，程序需要中断下载线程的执行。
+		中断线程非常简单，只要在其他线程中对目标线程调用interrupt()方法，目标线程需要反复检测自身状态是否是interrupted状态，如果是，
+		就立刻结束运行。
+		
+		示例代码：
+			Thread t = new MyThread();
+			t.start();
+			Thread.sleep(1); // 暂停1毫秒
+			t.interrupt(); // 中断t线程
+			t.join(); // 等待t线程结束
+			System.out.println("end");
 			
+			class MyThread extends Thread {
+				public void run() {
+					int n = 0;
+					while (! isInterrupted()) {
+						n ++;
+						System.out.println(n + " hello!");
 			
+			输出结果：循环次数随机(规律暂不清楚)末尾是end
+			main线程通过调用t.interrupt()方法中断t线程，interrupt()方法仅仅向t线程发出中断请求，以至于t线程是否能够立刻响应，
+			要看具体代码，t线程的while循环会检测isInterrupted()，所以能正确响应interrupt请求，使自身立刻结束运行run方法。
 			
-			
-			
-			
-			
-			
+		如果线程是等待状态，如，t.join()会让main线程进入等待状态。此时，对main线程调用interrupt()，join()会立刻抛出InterruptedException，
+		因此，目标线程只要捕获到join()方法抛出的InterruptedException，就说明有其他线程对其调用了interrupt()，通常情况下该线程应立刻结束运行。
+		示例代码：	
+			main：
+				Thread t = new MyThread();
+				t.start();
+				Thread.sleep(1000);
+				t.interrupt(); // 中断t线程
+				t.join(); // 等待t线程结束
+				System.out.println("end");
 						
+			class MyThread extends Thread：
+				public void run() {
+				Thread hello = new HelloThread();
+				hello.start(); // 启动hello线程
+				try {
+					hello.join(); // 等待hello线程结束
+				} catch (InterruptedException e) {
+					System.out.println("interrupted!");
+				}
+				hello.interrupt();
+			
+			class HelloThread extends Thread：
+				public void run() {
+				int n = 0;
+				while (!isInterrupted()) {
+					n++;
+					System.out.println(n + " hello!");
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						break;
+			
+			输出结果：10个hello！ 其后是interrupted！ 最后是end
+			
+			main线程通过调用t.interrupt()从而同志t线程中断，此时t线程位于hello.join()等待中，此方法会立刻结束等待并抛出InterruptedException。
+			由于在t线程中驳火了InterruptedException，因此就可准备结束该线程。t线程结束前，对hello线程也进行了interrupt()调用同志其中断。
+			如果去掉这行代码，会发现hello线程仍会继续运行，且JVM不会退出。
+			
+		另一个常用中断线程的方法是设置标志位。通常用一个running标志位标识线程是否应该继续运行，外部线程中，通过将HelloThread.running设置为false，
+		就能让线程结束：
+			//中断线程：
+			public static void main(String[] args)  throws InterruptedException：
+				HelloThread t = new HelloThread();
+				t.start();
+				Thread.sleep(1);
+				t.running = false; // 标志位置为false
+				
+			class HelloThread extends Thread：
+				public volatile boolean running = true;
+				public void run() {
+					int n = 0;
+					while (running) {
+						n ++;
+						System.out.println(n + " hello!");
+					}
+					System.out.println("end!");
+			
+			HelloThread的标志位boolean running是一个线程间共享的变量。线程间共享变量需要使用volatile关键字标记，确保每个线程都能读取到更新后的变量值。
+			
+		对线程间共享的变量使用概念剪子volatile声明，涉及到java内存模型，java虚拟机中，变量的值保存在主内存中，但当线程访问变量时，会先获取一个副本，
+		并保存在自己工作内存中。如果线程修改了变量的值，虚拟机会在某时刻将修改后的值回写到主内存，但这个时间不确定。
+			┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+					   Main Memory
+			│                               │
+			   ┌───────┐┌───────┐┌───────┐
+			│  │ var A ││ var B ││ var C │  │
+			   └───────┘└───────┘└───────┘
+			│     │ ▲               │ ▲     │
+			 ─ ─ ─│─│─ ─ ─ ─ ─ ─ ─ ─│─│─ ─ ─
+				  │ │               │ │
+			┌ ─ ─ ┼ ┼ ─ ─ ┐   ┌ ─ ─ ┼ ┼ ─ ─ ┐
+				  ▼ │               ▼ │
+			│  ┌───────┐  │   │  ┌───────┐  │
+			   │ var A │         │ var C │
+			│  └───────┘  │   │  └───────┘  │
+			   Thread 1          Thread 2
+			└ ─ ─ ─ ─ ─ ─ ┘   └ ─ ─ ─ ─ ─ ─ ┘
+		这导致如果一个线程更新了某个变量，另一个线程读取的值可能还是更新前的。如，主内存的变量a=true，线程1执行=false时，此时仅仅将变量阿的副本变成了false，
+		主内存的变量a还是true，JVM将修改后的a会写到主内存之前，其他线程读取到的a值仍是true，这造成了多线程之间共享的变量不一致。
+		
+		因此，volatile关键字的目的是高速虚拟机：
+			每次访问变量时，总是获取主内存的最新值。
+			每次修改变量后，立刻回写到主内存。
+		
+		volatile关键字解决的时可见性问题：当一个线程修改了某一个共享变量的值，其他线程能够立刻看到修改后的值。
+		如果去掉volatile关键字，运行上述程序，发现效果和带volatile差不多，是因为在x86的架构下，JVM回写主内存的速度非常快，但是换成ARM的架构，就会有显著的延迟。
+		
+		结：
+			对目标线程调用interrupt()方法可以请求中断一个线程，目标线程通过检测isInterrupted()标志获取自身是否已中断。如果目标线程处于等待状态，该线程会捕获到InterruptedException；
+
+			目标线程检测到isInterrupted()为true或者捕获了InterruptedException都应该立刻结束自身线程；
+
+			通过标志位判断需要正确使用volatile关键字；
+
+			volatile关键字解决了共享变量在线程间的可见性问题。
 			
 			
 			
+	守护线程：
+		守护线程就是守护其他普通线程的线程，当没有普通线程运行的时候，不论有没有守护线程，JVM都会退出。
+		
+		Java程序入口由JVM启动main线程，main线程也可启动其他线程。所有线程结束时，JVM退出，进程结束。
+		如果线程没有退出，JVM进程就不会退出，所以必须保证所有线程都能及时结束。
+		
+		但是一个定时触发任务的线程目的是无限循环：
+			class TimerThread extends Thread {
+			@Override
+			public void run() {
+				while (true) {
+					System.out.println(LocalTime.now());
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						break;
+			
+			如果此线程不结束，JVM进程就无法结束。这类线程经常没有负责人负责结束他们。
+		
+		守护线程就是为其他线程服务的线程，JVM中，所有非守护线程执行完成后，无论有没有守护线程，虚拟机都会自动退出。
+		所以JVM退出时，不用关心守护线程是否已结束。
+		
+		创建守护线程：
+			Thread t = new MyThread();
+			t.setDaemon(true);
+			t.start();
+			
+			创建方式和普通线程一样，只是在调用start方法前，调用setDaemon(true)将线程标记为守护线程。
+			
+		守护线程中，编写代码注意：
+			守护线程不能持有任何需要关闭的资源，如打开文件等等，因为虚拟机退出时，守护线程没有任何机会时间关闭文件，会导致数据丢失。
+		
+		结：
+			守护线程是为其他线程服务的线程；
+
+			所有非守护线程都执行完毕后，虚拟机退出；
+
+			守护线程不能持有需要关闭的资源（如打开文件等）。
 			
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-					
-			
-			
-			
-			
-			
-			
-			
-			
-			
+	线程同步：
+		
 			
 						
 			
