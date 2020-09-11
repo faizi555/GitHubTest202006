@@ -5097,42 +5097,240 @@ IO流：
 			
 	线程同步：
 		
-			
+		代码例子：https://www.liaoxuefeng.com/wiki/1252599548343744/1306580844806178
+	
+		多线程同时运行时，线程调度由操作系统决定，程序本身无法决定。因此任何一个线程都可能在任何指令处被操作系统暂停，
+		然后在某个时间段后继续执行，此时，单线程某型下不存在的问题就是，如果多线程同时读写共享变量，会出现数据不一致的问题。
+		
+		两个线程对一个变量进行操作时，每次运行结果不一样。因为对变量写入读取时，结果正确必须保证原子操作。
+		原子操作时指不能被中断的一个或一系列操作。
+		
+		我们假设n的值是100，如果两个线程同时执行n = n + 1，得到的结果很可能不是102，而是101，原因在于：
+			┌───────┐    ┌───────┐
+			│Thread1│    │Thread2│
+			└───┬───┘    └───┬───┘
+				│            │
+				│ILOAD (100) │
+				│            │ILOAD (100)
+				│            │IADD
+				│            │ISTORE (101)
+				│IADD        │
+				│ISTORE (101)│
+				▼            ▼	
 						
+		如果线程1在执行ILOAD后被操作系统中断，此刻如果线程2被调度执行，它执行ILOAD后获取的值仍然是100，
+		最终结果被两个线程的ISTORE写入后变成了101，而不是期待的102。
+
+		这说明多线程模型下，要保证逻辑正确，对共享变量进行读写时，必须保证一组指令以原子方式执行：即某一个线程执行时，其他线程必须等待：
+			┌───────┐     ┌───────┐
+			│Thread1│     │Thread2│
+			└───┬───┘     └───┬───┘
+				│             │
+				│-- lock --   │
+				│ILOAD (100)  │
+				│IADD         │
+				│ISTORE (101) │
+				│-- unlock -- │
+				│             │-- lock --
+				│             │ILOAD (101)
+				│             │IADD
+				│             │ISTORE (102)
+				│             │-- unlock --
+				▼             ▼	
+			
+		通过加锁和解锁的操作，就保证3条指令总是在一个线程执行期间，不会有其他线程进入此指令区间。即使在执行期线程被操作系统中断执行，
+		其他线程会因为无法获得锁导致无法进入此指令区间。只有执行线程将锁释放后，其他线程才有机会获得锁并执行。此加锁和解锁之间的代码
+		称为临界区(Critical Section)，任何时候临界区最多只有一个线程能执行。
+		
+		保证一段代码的原子性就是通过加锁和解锁实现。java通过sysnchronized(同步)关键字对对象进行加锁：
+			synchronized(lock){
+				………………
+			}
+			
+		synchronized保证代码块在任意时刻最多只有一个线程能执行。
+		
+		synchronized(Counter.lock) { // 获取锁	
+			表示Counter.lock为锁，多线程各自执行synchronized(Counter.lock)代码块时，必须先获得锁，才能进行代码控制。执行结束后，
+			在synchronized语句块结束自动释放锁。如此，对counter.count变量进行读写就不能同时进行。
+			
+			synchronized解决了多线程同步访问共享变量的正确性，但是缺带来性能下降。因为synchronized代码块无法并发执行，此外，加锁
+			和解锁需消耗一定的时间，所以synchronized会降低程序的效率。
+		
+		如何使用synchronized：
+			找出修改共享变量的线程代码块；
+			选择一个共享实例作为锁；
+			使用synchronized(lockObject) { ... }。
+			
+		在使用synchronized的时候，不必担心抛出异常。因为无论是否有异常，都会在synchronized结束处正确释放锁：	
+			public void add(int m) {
+			synchronized (obj) {
+				if (m < 0) {
+					throw new RuntimeException();
+				}
+				this.value += m;
+			} // 无论有无异常，都会在此释放锁
 			
 			
+		错误的是不同线程使用不同的lock对象作锁，这样导致不同线程可同时获得锁，因为JVM只保证同一个锁在任意时刻
+		只能被一个线程获取，但两个不同的锁在同一时刻可被两个线程分别获取。
+		
+		4个线程对两个共享变量分别进行读写操作，但锁都是Counter.lock对象，造成可以并发执行的Counter.studentCount+=和Count.teacherCount+=1，
+		无法并发执行，效率降低，实际上同步线程可分为   AddStudentThread 和 DecStudentThread，   AddTeacherThread 和 DecTeacherThread，
+		组之间不存在竞争，因此，应该使用两个不同的锁
+			锁为Count.lockstudent 和 Count.lockteacher ，这样才能效率最大化。
 			
+		不需要synchronized的操作：
 			
+			JVM规范原子操作：
+				基本类型（long和double除外）赋值，例如：int n = m；
+				引用类型赋值，例如：List<String> list = anotherList。
 			
+			long和double是64位，JVM没有明确规定64位赋值操作是不是一个原子操作，但x64平台的JVM是将long和double的赋值作为原子实现操作。
+			单台哦原子操作语句不需同步。如：
+				public void set(int m) {
+					synchronized(lock) {
+						this.value = m;
+				
+			但是，如果是多行赋值语句，就必须保证是同步操作，例如：
+				class Pair {
+					int first;
+					int last;
+					public void set(int first, int last) {
+						synchronized(this) {
+							this.first = first;
+							this.last = last;
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			有些时候，通过一些巧妙的转换，可以把非原子操作变为原子操作。例如，上述代码如果改造成：
+				class Pair {
+					int[] pair;
+					public void set(int first, int last) {
+						int[] ps = new int[] { first, last };
+						this.pair = ps;
 					
+			就不再需要同步，因为this.pair = ps是引用赋值的原子操作。而语句：
+				int[] ps = new int[] { first, last };
+			
+			这里的ps是方法内部定义的局部变量，每个线程都会有各自的局部变量，互不影响，并且互不可见，并不需要同步。		
+			
+		结：
+			多线程同时读写共享变量时，会造成逻辑错误，因此需要通过synchronized同步；
+
+			同步的本质就是给指定对象加锁，加锁后才能继续执行后续代码；
+
+			注意加锁对象必须是同一个实例；
+
+			对JVM定义的单个原子操作不需要同步	
 			
 			
+	同步方法：
+		java靠synchronized进行线程同步，使用synchronized的时候，锁住哪个对象很重要。
+		线程自己选择锁对象往往使得代码逻辑混乱，也不利于封装。更好方法是将synchronized逻辑封装起来。
+		
+		计数器例子：
+			public class Counter {
+			private int count = 0;
+
+			public void add(int n) {
+				synchronized(this) {
+					count += n;
+				}
+			}
+
+			public void dec(int n) {
+				synchronized(this) {
+					count -= n;
+				}
+			}
+
+			public int get() {
+				return count;
+			
+			如此，线程调用add、dec方法时，不用关心同步逻辑，因为synchronized代码块在add、dec内部。并且，sunchronized锁住对象是this，
+			即当前实例，使得创建多个Counter实例的时候，它们之间互不影响，可以并发执行。
+			
+			var c1 = Counter();
+			var c2 = Counter();
+
+			// 对c1进行操作的线程:
+			new Thread(() -> {
+				c1.add();
+			}).start();
+			new Thread(() -> {
+				c1.dec();
+			}).start();
+
+			// 对c2进行操作的线程:
+			new Thread(() -> {
+				c2.add();
+			}).start();
+			new Thread(() -> {
+				c2.dec();
+			}).start();
+		
+		
+		现对于Counter类，多线程可正确调用。
+		如果一个类被设计为允许正确访问，那么这个类就是“线程安全”的(thread-safe)，上面的counter类就是线程安全的。
+		java标准库的java.lang.StringBuffer也是线程安全的。
+		还有写不变类，String、Integer、LocalDate，所有的成员变量都是final，多线程同时访问时只能读不能写，不变类也是线程安全的。
+		类似Math只提供静态方法没有成员变量的类，也是线程安全的。
+		
+		ArrayList都是非线程安全的，不能再多线程中修改它们，但，如果所有线程都只能读不能写，那么ArrayList是可以安全地再线程间共享的。
+			
+		没有特殊说明时，一个类默认是非线程安全的。
+		synchronized(this)	同步锁，锁住的是this实例时，实际上可用synchronized修饰此方法，以下方法作用相同：
+			
+			public void add(int n) {						public synchronized void add(int n) { // 锁住this
+			synchronized(this) { // 锁住this					count += n;
+				count += n;									} // 解锁
+			} // 解锁
+			
+			使用synchronized修饰的方法就是同步方法，表示整个方法都必须使用this实例加锁。
+		
+		对于static方法，是没有this实例的，因为static方法是针对类而不是实例。但注意到任何一个类都有一个由JVM自动创建的Class实例，因此，
+		对static方法添加synchronized，锁住的是该类的Class实例：
+			
+			public synchronized static void test(int n) {
+			...
+			
+			就相当于
+			
+			public class Counter {
+				public static void test(int n) {
+					synchronized(Counter.class) {
+						...
+			
+			读取一个变量不需要同步，读取两个变量时就需要同步。
+			
+		结：
+			用synchronized修饰方法可以把整个方法变为同步代码块，synchronized方法加锁对象是this；
+
+			通过合理的设计和数据封装可以让一个类变为“线程安全”；
+
+			一个类没有特殊说明，默认不是thread-safe；
+
+			多线程能否安全访问某个非线程安全的实例，需要具体问题具体分析。	
 			
 			
+	死锁：
+		java线程锁是可重入的锁。
+		如：
+			private int count = 0;
+
+			public synchronized void add(int n) {
+				if (n < 0) {
+					dec(-n);
+				} else {
+					count += n;
+				
+			public synchronized void dec(int n) {
+				count += n;
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			由于synchronized修饰的add方法，一旦线程执行到add方法内部，说明已经获取到当前实例this锁。
+			如果传入的n<0，将在add方法内部调用dec方法。由于dec方法也需要获取this锁，对同一个线程，也能
+			在获取到锁后继续获取同一个锁。
+			因为JVM允许同一线程重复获取同一个锁，这种能被同一个线程反复获取的锁，叫可重入锁。
+			java线程锁是可重入锁，so，获取锁的时候，不但判断是否第一次获取，还要记录是第几次获取。
+			每获取一次，记录+1，每退出synchronized块记录-1，减到0，才会真正释放锁。
 			
 			
 			
