@@ -5370,57 +5370,249 @@ IO流：
 			避免死锁的方法是多线程获取锁的顺序要一致。			
 			
 			
+	
+	使用wait和notify(推迟和通知)：
+		synchronized解决了多线程竞争的问题。
+		如对一个任务管理器，多个线程同时向队列中添加任务，使用synchronized加锁：
+			class TaskQueue {
+			Queue<String> queue = new LinkedList<>();
+
+			public synchronized void addTask(String s) {
+				this.queue.add(s);
+		
+		synchronized并没有解决多线程协调问题。
+		
+		以TashQueue为例，编写一个getTask方法取出队列的第一个任务：
+			class TaskQueue {
+			Queue<String> queue = new LinkedList<>();
+
+			public synchronized void addTask(String s) {
+				this.queue.add(s);
+			}
+
+			public synchronized String getTask() {
+				while (queue.isEmpty()) {
+				}
+				return queue.remove();
+			get判断队列是否为空，为空则循环等待，直到另一个线程向队列放入任务，while退出循环，就可返回队列元素。
+			但while永不退出，因为线程执行while循环时，已经getTask入口获取this锁，其他线程无法调用addTask，因为
+			addTask执行条件也是获取this锁。
+			
+			因为想执行效果是：
+				线程1可调用addTask不断向队列中添加任务。
+				线程2可以调用getTask从队列中获取任务。如果队列为空，则getTask应该等待，直到队列中有一个任务返回。
+			
+			多线程运行原则就是：条件不满足时，线程进入等待状态。条件满足时，线程被唤醒，继续执行任务。
+				gettask方法的while方法体中添加this.wait()语句，表示如果条件成立(队列为空)进入等待状态。
+				关键是：wait必须再当前获取锁的对象上调用，获取的是this锁，因此调用this.wait。
+				调用wait方法后线程进入等待，wait不会返回，直到线程从等待被其他线程唤醒后，wait将返回然后执行下一条语句。
+				
+			wait的机制非常复杂，是定义再object类的一个native方法，就是JVM的C代码实现的，并且必须再synchronized块中才能调用
+			wait方法，因为wait调用时，会释放线程获得的锁，wait方法返回后，线程会重新试图获得锁。
+			
+			所以只能再锁对象上调用wait方法，因为再getTask中，获得了this锁，so只能再this对象上调用wait方法：
+				public synchronized String getTask() {
+				while (queue.isEmpty()) {
+					// 释放this锁:
+					this.wait();
+					// 重新获取this锁
+				}
+				return queue.remove()
+			
+			当一个线程在this.wait等待时，会释放this锁，从而使得其他线程能够addTask方法获得this锁。
+			
+			将等待的线程被重新唤醒，从wait返回的话要在相同锁对象调用notify方法：
+				public synchronized void addTask(String s) {
+					this.queue.add(s);
+					this.notify(); // 唤醒在this锁等待的线程
+				
+				在向队列中添加任务后，线程立刻对this锁对象调用notify方法，此方法会唤醒一个正在this锁等待的线程
+				(在getTask中位于this.wait线程)，从而使等待线程this.wait方法返回。
+			
+			
+		结：
+			wait是推迟，notify是通知，notifyAll是通知所有
+			
+			wait和notify用于多线程协调运行：
+
+			在synchronized内部可以调用wait()使线程进入等待状态；
+
+			必须在已获得的锁对象上调用wait()方法；
+
+			在synchronized内部可以调用notify()或notifyAll()唤醒其他等待线程；
+
+			必须在已获得的锁对象上调用notify()或notifyAll()方法；
+
+			已唤醒的线程还需要重新获得锁后才能继续执行。	
 			
 			
 			
 			
+	使用ReentrantLock(可重入锁)：
+		java5引入一个高级的处理并发java.util.concurrent包，提供了大量更高级的并发功能，能大大简化多线程程序编写。
+		synchronized用于加锁，此锁是很重并且获取时要一直等待，没有额外的尝试机制。
+		java.util.concurrent.locks包提供的ReentrantLock用于替代synchronized加锁。
+		
+		传统synchronized代码：
+			public class Counter {
+				private int count;
+				public void add(int n) {
+					synchronized(this) {
+						count += n;
+						
+		使用ReentrantLock代替：
+			public class Counter {
+				private final Lock lock = new ReentrantLock();
+				private int count;
+
+				public void add(int n) {
+					lock.lock();
+					try {
+						count += n;
+					} finally {
+						lock.unlock();
 			
 			
+		因为synchronized是java提供语法，so不需要担心异常，ReentrantLock是java实现的锁，就必须先获取锁，然后在finally中释放锁。
+		ReentrantLock是可重入锁，和sunchronized一样，一个线程可多次获取同一个锁。
+		
+		和synchronized不同，ReentrantLock可尝试获取锁：
+			if (lock.tryLock(1, TimeUnit.SECONDS)) {
+				try {
+					...
+				} finally {
+					lock.unlock();
+			以上代码尝试获取锁的时候，最多等待1秒。1秒后仍未获取锁，tryLock返回false，程序就可以做一些额外处理，而不是无限期等下去。
+		
+		所以ReentrantLock比直接使用synchronized更安全，线程在tryLock失败的时候不会导致死锁。
+		
+		结：
+			ReentrantLock可以替代synchronized进行同步；
+
+			ReentrantLock获取锁更安全；
+
+			必须先获取到锁，再进入try {...}代码块，最后使用finally保证释放锁；
+
+			可以使用tryLock()尝试获取锁。	
 			
 			
+	使用Condition(条件锁)：
+		使用ReentrantLock比直接使用synchronized更安全，可替代synchronized进行线程同步。
+		synchronized可配合wait和notify实现线程在条件不满足时等待，条件满足时唤醒，用ReentrantLock编写wait和notify时，
+		使用Condition对象实现wait和notify的功能。
+		
+		以TaskQueue为例，将前面synchronized实现的功能通过ReentrantLock和Condition实现：
+			private final Lock lock = new ReentrantLock();
+			private final Condition condition = lock.newCondition();
+			private Queue<String> queue = new LinkedList<>();     队列集合
 			
+			public void addTask(String s) {
+				lock.lock();
+				try {
+					queue.add(s);
+					condition.signalAll();
+				} finally {
+					lock.unlock();
+
+			public String getTask() {
+				lock.lock();
+				try {
+					while (queue.isEmpty()) {
+						condition.await();
+					}
+					return queue.remove();
+				} finally {
+					lock.unlock();
 			
+			Condition，引用的Condition对象必须从Lock实例的newCondition返回，才能获得一个绑定Lock实例的Condition实例。
+			Condition提供的await、signal、signalAll原理和synchronized锁对象的wait、notify、notifyAll是一致的，其行为也一样。
+				await()会释放当前锁，进入等待状态；
+
+				signal()会唤醒某个等待线程；
+
+				signalAll()会唤醒所有等待线程；
+
+				唤醒线程从await()返回后需要重新获得锁。
 			
+			此外和tryLock类似，await可以在等待指定时间后，如果还没被其他线程通过signal或signalAll唤醒，可自己醒来。
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			if (condition.await(1, TimeUnit.SECOND)) {
+				// 被其他线程唤醒
+			} else {
+				// 指定时间内没有被其他线程唤醒
 					
+		所以，使用Condition配合Lock，实现更灵活的线程同步。
+		
+		结：
+			Condition可以替代wait和notify；
+
+			Condition对象必须从Lock对象获取。
 			
 			
+	使用ReadWriteLock(读写锁)：
+		ReentrantLock保证只有一个线程可以执行临界锁：
+			private final Lock lock = new ReentrantLock();
+			private int[] counts = new int[10];
+			
+			public void inc(int index) {
+				lock.lock();
+				try {
+					counts[index] += 1;
+				} finally {
+					lock.unlock();
+			
+			public int[] get() {
+				lock.lock();
+				try {
+					return Arrays.copyOf(counts, counts.length);
+				} finally {
+					lock.unlock();
 			
 			
+		但有时这种保护有点过头。因为任何时候只允许一个线程修改，也就是inc方法必须获取锁，但是get方法只读取数据不修改，
+		但实际上允许多个线程同时调用。
+		
+		理想是：允许多个线程同时读，但只要一个线程在写，其他线程必须等待：	
+				读		写
+			读	允许	不允许
+			写	不允许	不允许
 			
+		ReadWriteLock可解决这个问题，其保证了：
+			只许一个线程写入(其他线程既不能写入也不能读取)。
+			没有写入时，多个线程允许同时读(提高性能)。
 			
+		用ReadWriteLock实现这个功能十分容易。我们需要创建一个ReadWriteLock实例，然后分别获取读锁和写锁：	
+			private final ReadWriteLock rwlock = new ReentrantReadWriteLock();	可重入读写锁
+			private final Lock rlock = rwlock.readLock();		读锁
+			private final Lock wlock = rwlock.writeLock();		写锁
+			private int[] counts = new int[10];					线程数组
+
+			public void inc(int index) {
+				wlock.lock(); // 加写锁
+				try {
+					counts[index] += 1;
+				} finally {
+					wlock.unlock(); // 释放写锁
+					
+			public int[] get() {
+				rlock.lock(); // 加读锁
+				try {
+					return Arrays.copyOf(counts, counts.length);
+				} finally {
+					rlock.unlock(); // 释放读锁
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+		把读写操作分别用读锁和写锁来加锁，在读取时，多个线程可以同时获得读锁，这样就大大提高了并发读的执行效率。
+		使用ReadWriteLock时，适用条件是同一个数据，有大量线程读取，但仅有少数线程修改。
+		例如，一个论坛的帖子，回复可以看做写入操作，它是不频繁的，但是，浏览可以看做读取操作，是非常频繁的，这种情况就可以使用ReadWriteLock。
+
+		结：
+			使用ReadWriteLock可以提高读取效率：
+
+			ReadWriteLock只允许一个线程写入；
+
+			ReadWriteLock允许多个线程在没有写入时同时读取；
+
+			ReadWriteLock适合读多写少的场景。	
 			
 			
 			
