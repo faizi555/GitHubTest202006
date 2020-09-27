@@ -5616,6 +5616,964 @@ IO流：
 			
 			
 			
+	使用StampedLock(读写锁改进版)：		
+		ReadWriteLock可解决多线程同时读，但只有一个线程能写的问题。	
+		ReadWriteLock潜在的问题是：如果线程在读，写线程需要等待线程释放锁后才能获取写锁，读的过程中不允许写，这是悲观的读锁。
+		StampedLock和ReadWriteLock相比，改进之处在于：
+			读的过程中也允许获取写锁后写入。如此，读取的数据就可能不一致，所以需要判断读的过程中是否有写入，这种读锁是乐观锁。
+		
+		乐观锁：是乐观的估计读的过程中大概率不会有写入，因此为乐观锁。
+		悲观锁：读的过程中拒绝写入，就是写入必须等待。
+		显然乐观锁的并发效率更高，但一旦有小概率的写入导致读取的数据不一致，需要能检测出来，再读一遍即可。
+		
+		例子如下：
+			private final StampedLock stampedLock = new StampedLock();
+			private double x;
+			private double y;
+
+			public void move(double deltaX, double deltaY) {
+				long stamp = stampedLock.writeLock(); // 获取写锁
+				try {
+					x += deltaX;
+					y += deltaY;
+				} finally {
+					stampedLock.unlockWrite(stamp); // 释放写锁
+
+			public double distanceFromOrigin() {
+				long stamp = stampedLock.tryOptimisticRead(); // 获得一个乐观读锁
+				// 注意下面两行代码不是原子操作
+				// 假设x,y = (100,200)
+				double currentX = x;
+				// 此处已读取到x=100，但x,y可能被写线程修改为(300,400)
+				double currentY = y;
+				// 此处已读取到y，如果没有写入，读取是正确的(100,200)
+				// 如果有写入，读取是错误的(100,400)
+				if (!stampedLock.validate(stamp)) { // 检查乐观读锁后是否有其他写锁发生
+					stamp = stampedLock.readLock(); // 获取一个悲观读锁
+					try {
+						currentX = x;
+						currentY = y;
+					} finally {
+						stampedLock.unlockRead(stamp); // 释放悲观读锁
+					}
+				}
+				return Math.sqrt(currentX * currentX + currentY * currentY);
+			
+			和ReadWriteLock相比，写入的加锁是一样的，不同的是读取。首先通过tryOptimisticRead获取一个乐观读锁，并返回版本号。
+			接着进行读取，读完后，通过validate验证版本号，如果读取过程中没有写入，版本号不变，验证成功，就能继续后续操作。
+			如果读取过程中有写入，版本号发生变化，验证失败。失败的时候，再通过悲观读锁再次读取。由于写入的概率不高，程序绝大
+			部分情况下可通过乐观读锁获取数据，极少情况下使用悲观读锁获取数据。
+			
+			StampedLock提供更复杂将悲观读锁升级为写锁的功能，主用在if-then-update的场景：
+				先读，如果读的数据满足条件，就返回，如果读的数据不满足条件，再尝试写。
+			
+		结：
+			StampedLock提供了乐观读锁，可取代ReadWriteLock以进一步提升并发性能；
+
+			StampedLock是不可重入锁。	
+			
+	
+
+	
+	使用Concurrent集合(并发)：
+	
+		concurrent(并发)
+		ReentrantLock(阻塞队列)
+		TaskQueue(任务队列)
+	
+		ReentrantLock(阻塞队列)和Condition实现BlockingQueue：
+			private final Lock lock = new ReentrantLock();
+			private final Condition condition = lock.newCondition();
+			private Queue<String> queue = new LinkedList<>();
+
+			public void addTask(String s) {
+				lock.lock();
+				try {
+					queue.add(s);
+					condition.signalAll();
+				} finally {
+					lock.unlock();
+
+			public String getTask() {
+				lock.lock();
+				try {
+					while (queue.isEmpty()) {
+						condition.await();
+					}
+					return queue.remove();
+				} finally {
+					lock.unlock();
+			
+			BlockingQueue意思是，当一个线程用TaskQueue的getTask方法时，该方法内部可能会让线程变为等待状态，直到队列条件满足不为空，
+			线程被唤醒后，getTask才会返回。
+			因为BlockingQueue非常有用，直接使用java标准库的java.util.concurrent包提供的线程安全的集合：ArrayBlockingQueue。
+			除了BlockingQueue外，针对List、Map、Set、Deque等，java.util.concurrent包也提供了对应的并发合集类。
+			
+		并发合集类如下：
+			interface		non-thread-safe				thread-safe
+			List			ArrayList					CopyOnWriteArrayList
+			Map				HashMap						ConcurrentHashMap
+			Set				HashSet / TreeSet			CopyOnWriteArraySet
+			Queue			ArrayDeque / LinkedList		ArrayBlockingQueue / LinkedBlockingQueue
+			Deque			ArrayDeque / LinkedList		LinkedBlockingDeque
+			
+			使用这些并发合集与使用非线程安全的集合类完全相同，ConcurrentHashMap为例：
+				
+				Map<String, String> map = new ConcurrentHashMap<>();
+				// 在不同的线程读写:
+				map.put("A", "1");
+				map.put("B", "2");
+				map.get("A", "1");
+			因为所有同步和加锁的逻辑都在集合内部实现，对外部调用来说，只要正常按接口引用，其他代码和原来的非线程安全代码完全一样。
+			当我们需要多线程访问时将
+				Map<String, String> map = new HashMap<>();
+			改为
+				Map<String, String> map = new ConcurrentHashMap<>();
+			即可。
+		
+		java.util.Collections工具类提供一个旧线程安全集合转换器：
+			Map unsafeMap = new HashMap();
+			Map threadSafeMap = Collections.synchronizedMap(unsafeMap);
+			
+			但实际上时用一个包装了非线程安全的Map，然后对所有读写方法都用synchronized加锁，这样获得的线程安全集合的性能比
+			java.util.concurrent集合低很多，so不推荐使用。
+			
+		结：
+			使用java.util.concurrent包提供的线程安全的并发集合可以大大简化多线程编程：
+
+			多线程同时读写并发集合是安全的；
+
+			尽量使用Java标准库提供的并发集合，避免自己编写同步代码。
+			
+			
+			
+	使用Atomic(原子性)：
+		
+		atomic          原子性
+		compareAndSet   比较交换
+		incrementAndGet 增加并获得
+		LongAdder 		自增计数器 
+		LongAccumulator 累加器
+		
+		java.util.concurrent除了提供底层锁，并发集合外，还提供一组原子操作的封装类，位于java.util.concurrent.atomic包。
+		
+		AtomicInteger为例，主要操作有：
+			增加值并返回新值：int addAndGet(int delta)
+			加1后返回新值：	  int incrementAndGet()
+			获取当前值：	  int get()
+			用CAS方式设置：   int compareAndSet(int expect, int update)
+		
+		Atomic类通过无锁(lock-free)的方式实现的线程安全(thread-safe)访问。主要原理利用CAS：Compare and Set。
+			
+		自己通过CAS编写incrementAndGet，大概张这样：
+			public int incrementAndGet(AtomicInteger var) {
+				int prev, next;
+				do {
+					prev = var.get();
+					next = prev + 1;
+				} while ( ! var.compareAndSet(prev, next));
+				return next;
+			
+		CAS指，此操作中，如果AtomicInteger的当前值是prev，那么就更新为next，返回true。
+		如果AtomicInteger的当前值不是prev，就什么都不干，返回false。通过CAS操作并配合do...while循环，
+		即使其他线程修改了AtomicInteger的值，最终结果也是正确的。
+			
+		利用AtomicLong可编写一个多线程安全的全局唯一ID生成器：
+			class IdGenerator {
+				AtomicLong var = new AtomicLong(0);
+
+				public long getNextId() {
+					return var.incrementAndGet();
+			
+			一般不需要直接do...while循环调用compareAndSet实现复杂的并发操作，而是使用incrementAndGet这样封装好的方法，
+			因此使用非常简单。
+			高度竞争的情况下，可使用Java8的LongAdder和LongAccumulator。
+		
+		结：
+			使用java.util.concurrent.atomic提供的原子操作可以简化多线程编程：
+
+			原子操作实现了无锁的线程安全；
+
+			适用于计数器，累加器等。
+			
+			
+			
+			
+	使用线程池：
+		创建线程需要操作系统资源(县城资源，栈空间等等)，频繁创建和销毁大量线程需要消耗大量事件。
+		
+		复用一组线程：
+			┌─────┐ execute  ┌──────────────────┐
+			│Task1│─────────>│ThreadPool        │
+			├─────┤          │┌───────┐┌───────┐│
+			│Task2│          ││Thread1││Thread2││
+			├─────┤          │└───────┘└───────┘│
+			│Task3│          │┌───────┐┌───────┐│
+			├─────┤          ││Thread3││Thread4││
+			│Task4│          │└───────┘└───────┘│
+			├─────┤          └──────────────────┘
+			│Task5│
+			├─────┤
+			│Task6│
+			└─────┘
+			就可以将很多小任务让一组线程执行，而不是对应一个新线程。这种能接收大量小任务并进行分发处理的就是线程池。
+			
+			就是线程池内部维护了若干个线程，没有任务的时候，这些线程都处于等待状态。如果有新任务，就分配一个空闲线程执行。
+			如果所有线程都处于忙碌状态，新任务要么都处于忙碌状态，新任务要么放入队列等待，要么增加一个新线程进行处理。
+			
+		Java标准库提供了ExecutorService接口表示线程池，它的典型用法如下：	
+			// 创建固定大小的线程池:
+			ExecutorService executor = Executors.newFixedThreadPool(3);
+			// 提交任务:
+			executor.submit(task1);
+			executor.submit(task2);
+			executor.submit(task3);
+			executor.submit(task4);
+			executor.submit(task5);
+			
+		因为ExecutorService只是接口，标准库提供常用实现类：
+			FixedThreadPool：线程固定的线程池。
+			CachedThreadPool：线程数根据任务动态调整的线程池。
+			SingleThreadExecutor：仅单线程执行的线程池。
+		
+		创建这些线程池的方法都被封装到Executors类中。以FixedThreadPool为例，观察线程池的执行逻辑：
+			// 创建一个固定大小的线程池:
+			ExecutorService es = Executors.newFixedThreadPool(4);
+			for (int i = 0; i < 6; i++) {
+				es.submit(new Task("" + i));
+			}
+			// 关闭线程池:
+			es.shutdown();
+			
+			class Task implements Runnable {
+				private final String name;
+
+				public Task(String name) {
+					this.name = name;
+				}
+
+				@Override
+				public void run() {
+					System.out.println("start task " + name);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+					System.out.println("end task " + name);
+				}
+			
+			执行结果是，由于有6个任务，线程池只有4个线程，所以会前4个线程同时执行，线程空闲后，才执行后面两个任务。
+			线程池在程序结束后要记得关闭。使用shutdown方法关闭线程池时，会等待正在执行的任务先完成，然后关闭。
+			shutdownNow会立刻停止正在执行的任务，awaitTermination则会等指定的事件让线程池关闭。
+			如果线程池改为CanchedThreadPool，由于此线程池的实现根据任务数量动态调整线程池大小，所以6个任务能同时执行。
+			
+		想创建指定动态范围的线程池：
+			int min = 4;
+			int max = 10;
+			ExecutorService es = new ThreadPoolExecutor(min, max,
+					60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+			
+		
+		ScheduledThreadPool：
+			某些任务需要定期反复执行，如，每秒刷新证券价格。
+			此任务本身固定，但要反复执行，可使用ScheduledThreadPool。放入ScheduledThreadPool的任务可以定期反复执行。
+			
+			创建一个ScheduledThreadPool仍是通过Executors类：
+				ScheduledExecutorService ses = Executors.newScheduledThreadPool(4);
+			
+			可通过提交一次性任务，会在指定延迟后只执行一次：
+				// 1秒后执行一次性任务:
+				ses.schedule(new Task("one-time"), 1, TimeUnit.SECONDS);
+			
+			如果任务固定每3秒执行：
+				// 2秒后开始执行定时任务，每3秒执行:
+				ses.scheduleAtFixedRate(new Task("fixed-rate"), 2, 3, TimeUnit.SECONDS);
+			
+			任务以固定每3秒为间隔执行：
+				// 2秒后开始执行定时任务，以3秒为间隔执行:
+				ses.scheduleWithFixedDelay(new Task("fixed-delay"), 2, 3, TimeUnit.SECONDS);
+			
+			
+			注意FixedRate和FixedDelay的区别。FixedRate是指任务总是以固定时间间隔触发，不管任务执行多长时间：
+				│░░░░   │░░░░░░ │░░░    │░░░░░  │░░░  
+				├───────┼───────┼───────┼───────┼────>
+				│<─────>│<─────>│<─────>│<─────>│
+			FixedDelay则是上次任务执行完后，等待固定时间间隔，再执行下一次任务：
+				│░░░│       │░░░░░│       │░░│       │░
+				└───┼───────┼─────┼───────┼──┼───────┼──>
+					│<─────>│     │<─────>│  │<─────>│
+			
+			so使用ScheduledThreadPool时，要根据需要选择执行一次，FixedRate执行还是FixedDelay执行。
+			
+			标准库提供java.util.Timer类，此类可定期执行任务，但一个Timer会对应一个Thread，所以一个Timer只能定期执行一个任务，
+			多个定时任务必须启动多个Timer，儿一个ScheduleThreadPool可调度多个定时任务，so可用ScheduledThreadPool取代旧的Timer。
+			
+		结：
+			JDK提供了ExecutorService实现了线程池功能：
+
+			线程池内部维护一组线程，可以高效执行大量小任务；
+
+			Executors提供了静态方法创建不同类型的ExecutorService；
+
+			必须调用shutdown()关闭ExecutorService；
+
+			ScheduledThreadPool可以定期调度多个任务。	
+			
+			
+			
+			
+	使用Future(未来)：
+		
+		Runnable（可运行）
+		Callable（可调用）
+		ExecutorService（执行器 服务）
+		submit（提交）
+	
+		多任务时，使用线程池方便。提交任务只需要实现Runnable接口，就可让线程池执行：
+			class Task implements Runnable {
+				public String result;
+				public void run() {
+					this.result = longTimeCalculation(); 
+		
+		Runnable接口的问题是方法没有返回值。如果需要返回结果只能保存到变量，还要提供额外的方法读取。所以还有个Callable接口，
+		和Runnable接口比，它多了返回值：
+			class Task implements Callable<String> {
+				public String call() throws Exception {
+					return longTimeCalculation(); 
+			Callable接口是泛型接口，可返回指定类型结果。
+		
+		获取异步执行结果的话。
+		ExecutorService.submit方法，其返回一个Future类型，一个Future类型的实例代表一个未来能获取结果的对象：
+			//定义线程数为4的线程池
+			ExecutorService executor = Executors.newFixedThreadPool(4)；
+			//定义任务
+			Callable<String> task = new Task();
+			//提交任务并获得Future
+			Future<String> future = executor.submit(task);
+			//从Future获取异步执行返回的结果
+			String result = future.get() //可能阻塞
+			
+			提交Callable任务后，同时会获得一个Future对象，然后再主线程某时刻吊桶Future兑现的get方法，就能获得异步执行的结果。
+			在调用get时，如果一波任务已完成，就直接获得结果。如果异步还没完成，get就会阻塞直到任务完成后才返回结果。
+			
+		一个Future<V>接口表示一个未来可能会返回的结果，定义方法：
+			get：获取结果(可能会等待)
+			get(long timeout， TimeUnit unit):获取结果，但只等待指定时间
+			cancel(boolean mayInterruptIfRunning)：取消当前任务
+			isDone：判断任务是否已完成
+			
+		结：
+			对线程池提交一个Callable任务，可以获得一个Future对象；
+
+			可以用Future在将来某个时刻获取结果。	
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			
 			
 			
