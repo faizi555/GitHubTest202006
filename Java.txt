@@ -5969,7 +5969,8 @@ IO流：
 			
 			
 			
-			
+	使用CompletableFuture(用于异步编程的类)：
+		
 			
 			
 			
