@@ -5971,177 +5971,1205 @@ IO流：
 			
 	使用CompletableFuture(用于异步编程的类)：
 		
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+		CompletableFuture的优点是：
+			异步任务结束时，会自动回调某个对象的方法；
+			异步任务出错时，会自动回调某个对象的方法；
+			主线程设置好回调后，不再关心异步任务的执行。
+			
+		结：
+			CompletableFuture可以指定异步处理流程：
+
+			thenAccept()处理正常结果；
+			exceptional()处理异常结果；
+			thenApplyAsync()用于串行化另一个CompletableFuture；
+			anyOf()和allOf()用于并行化多个CompletableFuture。	
+			
+			
+	使用ForkJoin：
+		java7引入的Fork/Join线程池，可将大任务拆分成多个小任务进行执行。
+		
+		如果计算一个超大数组的和，最简单的就是一个循环在一个线程内完成：
+			┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘
+		或数组拆分两份分别计算最后加起来就是最终结果，分别用两个线程并行执行：
+			┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘
+			┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘
+		两个线程还是很大，就拆分成4个，4个线程并行执行：
+			┌─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┘
+			┌─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┘
+			┌─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┘
+			┌─┬─┬─┬─┬─┬─┐
+			└─┴─┴─┴─┴─┴─┘
+		这就是Fork/Join任务的原理：判断一个任务是否足够小，如果是则直接计算，否则分拆成几个小任务分别计算。
+		此过程可反复裂变成一系列小任务(子任务)。
+		Fork/Join线程池在标准库中应用，标准库提供的java.util.Arrays.parallelSort(array)进行并行排序，原理是内部通过Fork/Join
+		对大数组拆分进行排序，在多核CPU上可大大提高排序的速度。
+	
+			
+		结：
+			Fork/Join是一种基于“分治”的算法：通过分解任务，并行执行，最后合并结果得到最终结果。
+
+			ForkJoinPool线程池可以把一个大任务分拆成小任务并行执行，任务类必须继承自RecursiveTask或RecursiveAction。
+
+			使用Fork/Join模式可以进行并行计算以提高效率。	
+			
+			
+			
+	使用ThreadLocal(线程局部变量)：
+	
+		ThreadLocl(线程局部变量)
+		context(上下文)
+	
+		多线程是java实现多任务的基础，Thread对象代表一个线程，可以在代码中调用Thread.currentThread()获取当前线程，打印日志时，可同时打印出当前线程名字。
+		web应用程序是典型的多任务应用，每个用户请求页面时，都会创建一个任务，如：
+			public void process(User user) {
+				checkPermission();	检查权限
+				doWork();			做工作
+				saveStatus();		保存状态
+				sendResponse();		发送响应
+		
+		观察process，内部需要调用其他方法，但如何在一个线程内传递状态。
+			public void process(User user) {
+				checkPermission(user);
+				doWork(user);
+				saveStatus(user);
+				sendResponse(user);
+			
+			可能传递user即可，但一个方法有会调用其他很多方法会导致user传递到所有地方
+			void doWork(User user) {
+				queryStatus(user);
+				checkStatus();
+				setNewStatus(user);
+				log();
+			这种线程中，横跨千万方法，需传递的对象，通常称为上下文(Context)，是一种状态，可以是用户身份，任务信息等。
+			方法每增加一个Context参数非常麻烦，有些时候，如果调用链有无法修改源码的第三发库，user对象就传不进去。
+			标准库提供一个特殊的ThreadLocl(线程局部变量)，它可以在一个线程中传递同一个对象。
+			
+			ThreadLocl实例通常以静态字段初始化如下：
+				static ThreadLocal<User> threadLoclUser = new ThreadLocl<>();
+				
+				典型使用方式：
+					void processUser(user){
+						try{
+							threadLoclUser.set(user);
+							step1();
+							step2();
+						}finally{
+							threadLoclUser.remove();
+				通过设置User实例关联到ThreadLocal中，移除之前，所有方法可随时获取user实例：
+					void step1() {
+						User u = threadLocalUser.get();
+						log();
+						printUser();
+
+					void log() {
+						User u = threadLocalUser.get();
+						println(u.name);
+
+					void step2() {
+						User u = threadLocalUser.get();
+						checkUser(u.id);
+			
+			普通方法调用一定是同一个线程执行，so，step1、step2以及log方法内，threadLocalUser.get获取的user对象时同一个实例。
+			实际上可将ThreadLocal看成一个全局Map<Thread,Object>，每个线程ThreadLocal变量时，总使用Thread自身作为key。
+				Object threadLocalValue = threadLocalMap.get(Thread.currentThread());
+			因此ThreadLocal相当于给每个线程开辟一个独立的存储空间，各个线程的ThreadLocal关联的实例互不干扰。
+			应特别注意ThreadLocal一定在finally中清除。
+				try {
+					threadLocalUser.set(user);
+					...
+				} finally {
+					threadLocalUser.remove();
+			因为当前线程执行相关代码后，可能被重新放入线程池，如果ThreadLocal没被清除，该线程执行其他代码时，会把上一次状态带进去。
+			为保证释放ThreadLocal关联的实例，通过AutoCloseable接口配合try(resource){}结构，让编译器自动为我们关闭，
+			如一个保存当前用户名的ThreadLocal封装为一个userContext对象：
+				
+				public class UserContext implements AutoCloseable {
+					static final ThreadLocal<String> ctx = new ThreadLocal<>();
+					public UserContext(String user) {
+						ctx.set(user);
+
+					public static String currentUser() {
+						return ctx.get();
+
+					@Override
+					public void close() {
+						ctx.remove();
+			
+			使用时借助try(resource){}结构可：
+				try (var ctx = new UserContext("Bob")) {
+					// 可任意调用UserContext.currentUser():
+					String currentUser = UserContext.currentUser();
+				} // 在此自动调用UserContext.close()方法释放ThreadLocal关联对象
+			这样就在UserContext中完全封装了ThreadLocal。外部代码try(resource){}内部随时调用UserContext.currentUser()获取当前线程绑定的用户名。
+			
+		结：
+			ThreadLocal表示线程的“局部变量”，它确保每个线程的ThreadLocal变量都是各自独立的；
+
+			ThreadLocal适合在一个线程的处理流程中保持上下文（避免了同一参数在所有方法中传递）；
+
+			使用ThreadLocal要用try ... finally结构，并在finally中清除。	
+			
+			
+			
+			
+			
+Maven基础：
+	
+	Maven是java项目管理和构建工具，定义项目结构、项目依赖，并使用统一方式进行自动化构建。
+	
+	Maven介绍：
+		依赖包的管理：将需要的包放入classpath中。
+		目录结构：src目录存放java源代码，resources目录存放配置文件，bin目录存放编译生成的.class文件。
+		配置环境：JDK版本，编译打包流程，当前代码版本号。
+		除Ecplise这种IDE外，还要命令行工具进行编译，项目才能在独立服务器上编译、测试、部署。
+		结合以上配置就需要标准化的java项目管理构建工具进行整合。
+	
+		Maven-java项目管理构建工具：
+			提供了一套标准化项目结构。
+			提供一套标准化的构建流程(编译，测试，打包，发布)。
+			提供一套依赖管理机制。
+		
+		Maven项目结构：
+			Maven管理的普通java项目，目录结构：
+				a-maven-project
+				├── pom.xml
+				├── src
+				│   ├── main
+				│   │   ├── java
+				│   │   └── resources
+				│   └── test
+				│       ├── java
+				│       └── resources
+				└── target
+				项目根目录a-maven-project是项目名，项目描述文件是pom.xml，存放java源码目录是src/main/java，
+				存放测试源码目录为src/test/java，存放测试资源的目录是src/test/resources，所有编译打包生成的文件
+				全在target目录里，这就是Mavne项目的标注目录结构。
+				
+			所有目录结构都是约定好的标准结构，不能随意更改目录结构，使用标准结构不用做任何配置，Maven即可正常使用。
+			
+			pom.xml描述文件构造基本如下(翻译为机翻)：
+				<project ...>										项目
+					<modelVersion>4.0.0</modelVersion>				模型版本
+					<groupId>com.itranswarp.learnjava</groupId>		项目包名
+					<artifactId>hello</artifactId>					项目名称
+					<version>1.0</version>							版本
+					<packaging>jar</packaging>						包装
+					<properties>									属性
+						...
+					</properties>
+					<dependencies>									依赖性
+						<dependency>								从属性
+							<groupId>commons-logging</groupId>		项目包名
+							<artifactId>commons-logging</artifactId>项目名称
+							<version>1.2</version>					版本
+						</dependency>
+					</dependencies>
+				</project>
+			groupId类似java包名，常用公司或组织名。
+			artifactId类似java类名常用项目名。
+			Maven项目工程由groupId，artifactId和version作为唯一标识，引用其他第三方库，也是通过3个变量确定。
+			如依赖commons-logging：
+				<dependency>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+					<version>1.2</version>
+				</dependency>
+				使用dependency声明一个依赖后，Maven会自动下载依赖包并放入classpath中。
+			
+		安装Maven：
+			官方网址：https://maven.apache.org/
+			可下载罪行的Maven3.6x本地解压设置环境变量：
+				M2_HOME=/path/to/maven-3.6.x
+				PATH=$PATH:$M2_HOME/bin
+			Windows可将%M2_HOME%\bin添加到系统Path变量中。
+			而后打开命令行窗口，输入mvn -version，即可看见maven的版本信息。
+			类似：
+				│Microsoft Windows [Version 10.0.0]                      │
+				│(c) 2015 Microsoft Corporation. All rights reserved.    │
+				│                                                        │
+				│C:\> mvn -version                                       │
+				│Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918...) │
+				│Maven home: C:\Users\liaoxuefeng\maven                  │
+				│Java version: ...                                       │
+				│...                                                     │
+				│C:\> _   
+			如果提示命令未找到那么系统PATH路径有误，需修复后运行。
+			
+		结：
+			Maven是一个Java项目的管理和构建工具：
+
+			Maven使用pom.xml定义项目内容，并使用预设的目录结构；
+			在Maven中声明一个依赖项可以自动下载并导入classpath；
+			Maven使用groupId，artifactId和version唯一定位一个依赖。
+			
+			
+			
+	依赖管理：
+		依赖管理是项目依赖第三方的包，第三方的包通过搜索引擎到官网进行下载再放入classpath但是过程繁琐。
+		Maven解决了依赖管理问题：
+			项目依赖abc的包，而abc又依赖xyz：
+				┌──────────────┐
+				│Sample Project│
+				└──────────────┘
+						│
+						▼
+				┌──────────────┐
+				│     abc      │
+				└──────────────┘
+						│
+						▼
+				┌──────────────┐
+				│     xyz      │
+				└──────────────┘
+			当声明abc依赖时，Maven自动将abc和xyz加入项目依赖，不需要自己去研究abc是否需要依赖xyz。
+			
+			因此只要项目声明需要包，Maven就会自动导入这个包，再判断这个包需要子包，又会导入其子包以此类推。
+				
+			当声明以下spring-boot-starter-web依赖时	，Maven自动判断解析最终需要二三十个其他依赖：
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>1.4.2.RELEASE</version>
+				
+			
+		依赖关系：
+			Maven依赖关系分别为compile、test、runtime和provided：
+				scope		说明											示例
+				compile		编译时需要用到该jar包（默认）					commons-logging
+				test		编译Test时需要用到该jar包						junit
+				runtime		编译时不需要，但运行时需要用到					mysql
+				provided	编译时需要用到，但运行时由JDK或某个服务器提供	servlet-api
+				
+				其中的compile最常见，Maven将这类型依赖直接放入classpath。
+				
+			test仅在测试时用到，正常运行不需要，常用的test依赖就是JUnit：
+				<dependency>
+					<groupId>org.junit.jupiter</groupId>
+					<artifactId>junit-jupiter-api</artifactId>
+					<version>5.3.2</version>
+					<scope>test</scope>
+				</dependency>
+			
+			runtime编译时也不需要，但运行时需要。runtime典型的依赖时JDBC驱动，如MySQL驱动：
+				<dependency>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+					<version>5.1.48</version>
+					<scope>runtime</scope>
+				</dependency>
+			
+			provided编译时需要但运行时不需要，其典型的依赖时ServletAPI，编译时需要但运行时Servlet服务器内置了相关jar，所以运行不需要。
+				<dependency>
+					<groupId>javax.servlet</groupId>
+					<artifactId>javax.servlet-api</artifactId>
+					<version>4.0.0</version>
+					<scope>provided</scope>
+				</dependency>
+			
+			Maven维护的一个中央仓库中(repo1.maven.org)，所有第三方库将自身的jar以及相关信息上传至中央仓库，
+			Maven就能从中央仓库将所需依赖下载到本地。
+			
+			Maven并不会每次从中央仓库下载，jar一旦被下载过就会缓存在本地目录(用户主目录的.m2目录下)，除了第一次下载外，后续因为有
+			本地缓存所以不会重复下载相同的jar包。
+			
+		唯一ID：
+			对于某个依赖，Maven只要通过以下3个变量即可唯一确定某个jar包：
+				groupId：	属于组织的名称，类似Java的包名；
+				artifactId：该jar包自身的名称，类似Java的类名；
+				version：	该jar包的版本。
+			
+			Maven通过对jar进行PGP签名确保任何一个jar包一经发布就无法修改。修改已发布jar唯一方法就是发布一个新版本。
+			因此，某个jar包一旦被Maven下载过，即可永久地安全缓存在本地。
+			
+			只有-SNAPSHOT结尾地版本号会被Maven视为开发版本，开发版每次都会重新下载，这种SNAPSHOT版本呢只能用于内部私有的Maven repo，
+			公开发布的版本不允许出现SNAPSHOT。
+		
+		Maven镜像：
+			可从Maven的中央仓库下载外，也可从Maven的镜像仓库下载，如果访问Maven中央仓库非常慢，可选择速度较快的镜像仓库。
+			Maven镜像仓库定期从中央仓库同步。
+			           slow    ┌───────────────────┐
+				┌─────────────>│Maven Central Repo.│
+				│              └───────────────────┘
+				│                        │
+				│                        │sync
+				│                        ▼
+			┌───────┐  fast    ┌───────────────────┐
+			│ User  │─────────>│Maven Mirror Repo. │
+			└───────┘          └───────────────────┘
+			中国区可使用阿里云提供的Maven镜像仓库。使用Maven镜像仓库需要配置，用户主目录下进入.m2目录，创建一个sttings.xml配置文件：
+				<settings>
+					<mirrors>
+						<mirror>
+							<id>aliyun</id>
+							<name>aliyun</name>
+							<mirrorOf>central</mirrorOf>
+							<!-- 国内推荐阿里云的Maven镜像 -->
+							<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+						</mirror>
+					</mirrors>
+				</settings>
+				配置镜像仓库后，Maven的下载速度就会非常快。
+		
+		搜索第三方组件：
+			需要引用第三方组件获取其的groupId、artifactId、version的话需通过search.maven.org搜索关键字，找到对应组件后，直接复制：
+				<dependency>
+					<groupId>com.squareup.okhttp3</groupId>
+					<artifactId>okhttp</artifactId>
+					<version>4.2.2</version>
+				</dependency>
+		
+		命令行编译：
+			在命令中，进入pom.xml所在目录，输入以下命令：
+				$ mvn clean package
+				如果过顺利即可在target目录下获得编译后自动打包的jar。
+		
+		在IDE中使用Maven：
+			基本所有IDE(集成开发环境，程序开发环境的软件)
+			
+		结：
+			Maven通过解析依赖关系确定项目所需的jar包，常用的4种scope有：compile（默认），test，runtime和provided；
+
+			Maven从中央仓库下载所需的jar包并缓存在本地；
+
+			可以通过镜像仓库加速下载。	
+			
+	
+	
+	构建流程：
+		validate：验证。
+		compile：编译源码。
+		test-compile：测试源码。
+		package：打包。
+		Lifecycle：生命周期。
+		Phase：阶段。
+		Goal：目标。
+		
+		Maven除了有标准化的项目结构，还有标准化的构建流程，可自动化实现编译，打包、发布等。
+		
+		
+		构建流程是对项目进项打包的过程：
+			验证(validate) > 编译源码(compile) > 编译测试源码(test-compile) > 单元测试(test) > 打包(package)
+			这个过程就是lifecycle(生命周期)，生命周期中有很多阶段(phase)，阶段通过既定顺序完成一个项目的构建。
+			
+			
+			
+		Lifecycle和Phase(生命周期、阶段)：
+			Maven的声明周期时一系列阶段构成(Phase)，以内置的生命周期default为例，其包含以下phase：
+				validate				process-classes				test					install
+				initialize				generate-test-sources		prepare-package			deploy
+				generate-sources		process-test-sources		package
+				process-sources			generate-test-resources		pre-integration-test
+				generate-resources		process-test-resources		integration-test
+				process-resources		test-compile				post-integration-test
+				compile					process-test-classes		verify
+		
+			如果运行mvn package，Maven就会执行default生命周期，从开始一直到package的phase为止：
+				validate —— package
+			运行mvn compile，也会执行default生命周期，只会运行到compile：
+				validate —— compile
+			Maven另一个常用生命周期时clean，会执行3个phase：
+				pre-clean	clean(此处clean是phase)		post—clean
+			所以使用mvn命令时，后参数是phase，Maven自动根据生命周期运行到指定的phase。
+			
+			更复杂的是指定多个phase，运行mvn clean parckage，Maven先执行clean生命周期并运行到clean这个phase，后执行default
+			生命周期并运行到package的phase，实际执行的phase如下：
+				pre-clean	clean	validate ……	package
+			
+			实际开发中，常用命令：
+				mvn clean：清理所有生成的class和jar。
+				mvn clean compile：先清理在执行到compile。
+				mvn clean test：先清理在执行到test，因为执行test前必须执行compile，所以此处不必指定compile。
+				mvn clean package：先清理，在执行到package。
+				大多phase(阶段)在执行过程中因为通常没有在pom.xml中配置相关设置，所以phase什么都做不了。
+			
+			常用的phase只有：
+				clean：清理。
+				compile：编译。
+				test：运行测试。
+				package：打包。
+				
+		Goal(目标)：
+			执行一个phase(阶段)会触发一个或多个goal：
+				执行的Phase		对应执行的Goal
+				compile			compiler:compile
+				test			compiler:testCompile
+								surefire:test
+			goal命名总是abc:xyz形式。
+			
+		lifacycle、phase、goal对比：
+		(声明周期) (阶段) (目标)
+			lifacycle相当于java的package，包含一个或多个phase。
+			phase相当于java的class，包含一个或多个goal。
+			goal相当于class的method，它才是真正干活的。
+			
+			大多情况下只要指定phase，就默认执行phase绑定的goal，少数情况直接指定运行一个goal，如启动tomcat服务器：
+				mvn tomcat:run
+				
+		以下对生命周期和对应阶段进行介绍：
+			Clean Lifecycle：真正的构建前进行清理工作
+							 pre-clean：执行需要在clean之前完成的工作。
+							 clean：移除所有上一次构建生成的文件。
+							 post-clean：执行一些需要在clean之后立刻完成的工作。
+			Site Lifecycle：生成项目报告，站点，发布站点
+							pre-site：执行需要在生成站点前完成的任务。
+							site：生成项目的站点文档。
+							post-site：执行需要在生成站点文档之后的工作，为部署做准备。
+							site-deploy：将生成的站点文档部署到特定的服务器上。
+			default Lifecycle：这是最重要的构建核心部分、编译、测试、打包、部署等等，在上面已经提到过，这里只提部分：
+							validate：检验工程是否正确，所需信息是否完整。
+							initialize：初始化构建平台，如设置properties或创建目录。
+							process-resources：复制并处理资源文件，至目标目录，准备打包。
+							compile：编译源代码。
+							process-classes：源代码编译后期处理，如java字节码增强or优化。
+							test-compile：编译测试源代码(默认test目录下)
+							test：执行单元测试。
+							package：将工程文件打包为指定格式，JAR or WAR等等。
+							integration-test：集成测试。
+							verify：检查package是否有效、符合标准。
+							install：将包安装至本地仓库，使其项目依赖。
+							deploy：将最终包符指到远程仓库，使其它开发人员与项目共享。
+								
+		
+		结：
+			Maven通过lifecycle、phase和goal来提供标准的构建流程。
+
+			最常用的构建命令是指定phase，然后让Maven执行到指定的phase：
+				mvn clean
+				mvn clean compile
+				mvn clean test
+				mvn clean package
+			通常情况，我们总是执行phase默认绑定的goal，因此不必指定goal。
+
+	
+	
+	使用插件：
+		plugin：插件。
+		phase：阶段。
+		goal：目标。
+		transformer：转换器。
+		
+		使用Maven构建项目的目的就是执行lifecycle，执行到指定的phase位置，每个phase都会执行自身默认一或多个goal(目标),goal是最小任务单位。
+		compile的Phase(阶段)：mvn phase
+		此phase会调用compiler插件执行关联的compiler：compile的goal(目标)。
+		执行每个phase都是通过某个插件(plugin)执行，Maven本身不知道如何执行compile，只负责找对应的compile插件，然后执行默认的
+		compiler：compile的goal完成编译。
+		
+		总而言之使用Maven，就是配置好需使用的插件，通过phase(阶段)调用它们。
+		
+		Maven内置的常用标准插件：
+			插件名称	对应执行的phase
+			clean		clean
+			compiler	compile
+			surefire	test
+			jar			package
+			
+			当插件无法满足可使用自定义插件，自定义插件需要声明，如maven-shade-plugin可创建一个可执行的jar，
+			使用时选哟在pom.xml中进行声明：
+				<project>
+					...
+					<build>
+						<plugins>
+							<plugin>
+								<groupId>org.apache.maven.plugins</groupId>
+								<artifactId>maven-shade-plugin</artifactId>
+								<version>3.2.1</version>
+								<executions>
+									<execution>
+										<phase>package</phase>
+										<goals>
+											<goal>shade</goal>
+										</goals>
+										<configuration>
+											...
+										</configuration>
+									</execution>
+								</executions>
+							</plugin>
+						</plugins>
+					</build>
+				</project>
+			自定义插件一般需要一些配置如，maven-shade-plugin需指定java程序入口，配置是：
+				<configuration>
+					<transformers>
+						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>com.itranswarp.learnjava.Main</mainClass>
+						</transformer>
+					</transformers>
+				</configuration>
+			需注意Maven自带的标准插件，如compiler是无需声明的，只有引入其他插件才需声明。
+		
+		以下为常用插件：
+			maven-shade-plugin：	打包所有依赖包并生成可执行jar；
+			cobertura-maven-plugin：生成单元测试覆盖率报告；
+			findbugs-maven-plugin：	对Java源码进行静态分析以找出潜在问题。
+		
+		结：
+			Maven通过自定义插件可以执行项目构建时需要的额外功能，使用自定义插件必须在pom.xml中声明插件及配置；
+
+			插件会在某个phase被执行时执行；
+
+			插件的配置和用法需参考插件的官方文档。
+
+
+			
+	模块管理：
+		parent：根源。
+		dependencies：依赖性。
+		dependency：依赖。
+		
+		
+		模块管理就是将一个大项目拆分成多个模块降低软件复杂度的有效方法：
+			                        ┌ ─ ─ ─ ─ ─ ─ ┐
+									  ┌─────────┐
+									│ │Module A │ │
+									  └─────────┘
+			┌──────────────┐ split  │ ┌─────────┐ │
+			│Single Project│───────>  │Module B │
+			└──────────────┘        │ └─────────┘ │
+									  ┌─────────┐
+									│ │Module C │ │
+									  └─────────┘
+									└ ─ ─ ─ ─ ─ ─ ┘
+			就Maven来说原来的大项目：
+				single-project
+				├── pom.xml
+				└── src
+			将其拆分为3个小模块：
+				mutiple-project
+				├── module-a
+				│   ├── pom.xml
+				│   └── src
+				├── module-b
+				│   ├── pom.xml
+				│   └── src
+				└── module-c
+					├── pom.xml
+					└── src
+			
+			每个模块当作是独立的个体，都有各自独立的pom.xml文件，这些文件中有相同的重复的代码，可将重复代码提取出来作为parent文件。
+			对于模块pom.xml文件的对比相关例子参考：https://www.liaoxuefeng.com/wiki/1252599548343744/1309301243117601
+			
+			parent本身不包含任何java代码，编写parent的pom.xml只是为各模块减少重复的配置，加上parent文件后的项目结构：
+				multiple-project
+				├── pom.xml
+				├── parent
+				│   └── pom.xml
+				├── module-a
+				│   ├── pom.xml
+				│   └── src
+				├── module-b
+				│   ├── pom.xml
+				│   └── src
+				└── module-c
+					├── pom.xml
+					└── src
+			
+			模块A的pom简化：
+				<project xmlns="http://maven.apache.org/POM/4.0.0"
+					xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+					xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+					<modelVersion>4.0.0</modelVersion>
+
+					<parent>
+						<groupId>com.itranswarp.learnjava</groupId>
+						<artifactId>parent</artifactId>
+						<version>1.0</version>
+						<relativePath>../parent/pom.xml</relativePath>
+					</parent>
+
+					<artifactId>module-a</artifactId>
+					<packaging>jar</packaging>
+					<name>module-a</name>
+				</project>
+				在parent标签中进行parent配置以继承，只要任何模块在pom进行配置都能继承parent文件。
+				
+				如果A依赖B，那么A就需要B的jar才能正常编译，需要在A中引入B：
+					<dependencies>
+						<dependency>
+							<groupId>com.itranswarp.learnjava</groupId>
+							<artifactId>module-b</artifactId>
+							<version>1.0</version>
+						</dependency>
+					</dependencies>
+							
+				在编译的时候需在根目录创建一个pom.xml统一编译：
+					<project xmlns="http://maven.apache.org/POM/4.0.0"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+						<modelVersion>4.0.0</modelVersion>
+						<groupId>com.itranswarp.learnjava</groupId>
+						<artifactId>build</artifactId>
+						<version>1.0</version>
+						<packaging>pom</packaging>
+						<name>build</name>
+
+						<modules>		//以下是项目拆分的各个模块
+							<module>parent</module>
+							<module>module-a</module>
+							<module>module-b</module>
+							<module>module-c</module>
+						</modules>
+					</project>
+					这样在根目录上执行mvn clean package时，Maven根据根目录的pom.xml找到包括parent在内的共4个<module>,一次性全部编译。
+		
+		中央仓库：
+			使用的大多第三方模块都是此用法，如：
+				使用commons logging、log4j这些第三方模块，就是第三方模块的开发者自己将编译好的jar包发布到Maven的中央仓库。
+		
+		私有仓库：
+			是指公司内部如果不希望将源码和jar包放到公网上，那就可以搭建私有仓库。私有总是在内部使用，只要本地的~/.m2/settings.xml中配置好，
+			使用方式和中央仓库没什么区别。
+		
+		本地仓库：
+			将本地开发的项目发布在本地，其他项目可通过本地仓库引用它。但不推荐将自己的模块安装到Maven本地仓库，因为每次修改某个模块的源码，
+			都需要重新安装，很容易出现版本不一致的情况。更好的方法使用模块化编译，编译时告诉Maven之间存在依赖关系，需要一块编译，Maven就会
+			自动按依赖顺序编译这些模块。
+			(本地仓库应该是每次修改模块后将项目一块进行编译避免版本不一致情况)
+			
+			
+		结：
+			Maven支持模块化管理，可以把一个大项目拆成几个模块：
+			可以通过继承在parent的pom.xml统一定义重复配置；
+			可以通过<modules>编译多个模块。	
+			
+			
+			
+	使用mvnw：
+		
+		什么是Mvnw：
+			mvnw是Maven Wrapper缩写。安装Maven时默认系统所有项目会使用全局安装的Maven版本。
+			某些项目必须使用某个特定版本Maven时，可使用MavenWrapper，它可负责给此特定项目安装指定版本Maven，其他项目不受影响。
+			就是说Maven Wrapper给一个项目提供一个独立的。指定版本的Maven给它使用。
+		
+		安装Maven Wrapper：
+			最简单的方式就是项目的根目录pom.xml所在目录，运行安装命令：
+				mvn -N io.takari:maven:0.7.6:wrapper
+			它会自动使用最新版本的Maven，0.7.6是MavenWrapper的版本。
+		
+			指定Maven的安装版本则使用：
+				mvn -N io.takari:maven:0.7.6:wrapper -Dmaven=3.3.3
+				
+			安装后查看项目结构发现会多了mvnw、mvnw.cmd和.mvn目录，只需要将mvn命令改为mvnw就能使用和项目关联的Maven，如：
+				mvnw clean package
+				在Linux或mac下运行则需要加上./
+				./mvnw clean package
+		Maven Wrapper的另一个作用就是将项目的mvnw、mvnw.cmd和.mvn提交到版本库中，可使所有开发人员使用统一的Maven版本。
+
+		结：
+			使用Maven Wrapper可为项目指定特定的Maven版本。
+			
+			
+			
+	发布Artifact：
+		Artifact：人为制造。
+		Nexus：关系。
+		
+		此小节的代码示例过多代码统一参考以下链接：
+			https://www.liaoxuefeng.com/wiki/1252599548343744/1347981037010977
+		
+		Artifact：人为制造。
+		Artifact使Maven中一个概念，表示某个module如何打包，如war exploded，war，jar，ear等打包形式，
+		module有Artifact的话就能部署到应用服务器中了。
+		
+		使用commons-logging第三方库的时候，通过Maven自动下载它的jar包，并通过pom.xml解析依赖，自动将相关依赖包下载后加入到classpath。
+		
+		如果在Maven的repo中放入一个开源库并分享，希望别人使用，别人只要按标准引用groupId:artifactId:version，即可自动下载jar包
+		以及相关依赖。
+		也就是说发布Artifact就是如何发布一个库到Maven的repo(再回收率)中的过程。
+			
+		以静态文件发布：
+			中央仓库的Artifact的结构，如Commons Math它的groupId是org.apache.commons，artifactId是commons-math3，
+			发布在中央仓库的文件夹路径就是https://repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/，
+			此文件夹下，commons-math-。jar就是发布的jar包，
+						commons-math-。pom就是它的pom.xml描述文件，
+						commons-math--sources.jar是源代码，
+						commons-math--javadoc.jar是文档。
+			其他以.asc、.md5、sha1结尾的文件分别是GPG签名，MD5摘要和SHA-1摘要。
+			只要通过这种目录结构组织文件，就一定是一个有效的Maven仓库。
+			
+			以开源项目how-to-become-rich为例，先创建Maven工程目录结构：
+				how-to-become-rich
+				├── maven-repo        <-- Maven本地文件仓库
+				├── pom.xml           <-- 项目文件
+				├── src
+				│   ├── main
+				│   │   ├── java      <-- 源码目录
+				│   │   └── resources <-- 资源目录
+				│   └── test
+				│       ├── java      <-- 测试源码目录
+				│       └── resources <-- 测试资源目录
+				└── target            <-- 编译输出目录
+			
+				在po.xml中添加以下内容：
+					<distributionManagement>
+						<repository>
+							<id>local-repo-release</id>
+							<name>GitHub Release</name>
+							<url>file://${project.basedir}/maven-repo</url>
+						</repository>
+					</distributionManagement>
+							
+			
+					<build>
+						<plugins>
+							<plugin>											<plugin>
+								<artifactId>maven-javadoc-plugin</artifactId>		<artifactId>maven-source-plugin</artifactId>
+								<executions>										<executions>
+									<execution>											<execution>
+										<id>attach-javadocs</id>							<id>attach-sources</id>
+										<phase>package</phase>								<phase>package</phase>
+										<goals>												<goals>
+											<goal>jar</goal										<goal>jar-no-fork</goal>
+										</goals>											</goals>
+									</execution>										</execution>
+								</executions>										</executions>
+							</plugin>											</plugin>
+						</plugins>
+					</build>
+					注意<distributionManagement>，指示了发布的软件包的位置，这里的<url>是根目录下的maven-repo目录，
+					在<build>中定义的两个插件maven-source-plugin和maven-javadoc-plugin分别用来创建源码和javadoc，如果不想发布源码，
+					可将对应的插件去掉。
+					
+					直接在项目根目录下运行Maven命令mvn clean package deploy，如果一切顺利，就能在maven-repo目录下找到部署后的所有文件：
+						maven-repo
+						└── com
+							└── itranswarp
+								└── rich
+									└── how-to-become-rich
+										├── 1.0.0
+										│   ├── how-to-become-rich-1.0.0-javadoc.jar
+										│   ├── how-to-become-rich-1.0.0-javadoc.jar.md5
+										│   ├── how-to-become-rich-1.0.0-javadoc.jar.sha1
+										│   ├── how-to-become-rich-1.0.0-sources.jar
+										│   ├── how-to-become-rich-1.0.0-sources.jar.md5
+										│   ├── how-to-become-rich-1.0.0-sources.jar.sha1
+										│   ├── how-to-become-rich-1.0.0.jar
+										│   ├── how-to-become-rich-1.0.0.jar.md5
+										│   ├── how-to-become-rich-1.0.0.jar.sha1
+										│   ├── how-to-become-rich-1.0.0.pom
+										│   ├── how-to-become-rich-1.0.0.pom.md5
+										│   └── how-to-become-rich-1.0.0.pom.sha1
+										├── maven-metadata.xml
+										├── maven-metadata.xml.md5
+										└── maven-metadata.xml.sha1
+			
+					最后将这个工程push(推送)到GitHub上，并选择Settings-GitHub Pages，选择master branch启用Pages服务，
+					这样将全部内容推送至GitHub后，可作为静态网站访问Maven的repo，地址是：
+						https://michaelliao.github.io/how-to-become-rich/maven-repo/
+					版本1.0.0对应的jar地址是：
+						https://michaelliao.github.io/how-to-become-rich/maven-repo/com/itranswarp/rich/how-to-become-rich
+						/1.0.0/how-to-become-rich-1.0.0.jar
+					现在如果有人想引用这个Maven包，告知以下依赖即可：
+						<dependency>
+							<groupId>com.itranswarp.rich</groupId>
+							<artifactId>how-to-become-rich</artifactId>
+							<version>1.0.0</version>
+						</dependency>
+								
+					但除了正常导入依赖外，对方还需添加一个<repository>的声明，即使用方完整的pom.xml文件。
+						
+				在<repository>中，必须声明发布的Maven的repo地址，id和name可任意填写，url填入github pages提供的地址+/maven-repo/后缀。
+				即可正常引用此库并编写代码如下：
+					Millionaire millionaire = new Millionaire();
+					System.out.println(millionaire.howToBecomeRich());
+			
+			使用commons-longging等三方库时，并不需要声明repo地址，因为都是发布到Maven中央仓库，就不需要告诉Maven仓库地址，
+			因为它知道中央仓库的默认地址是https://repo1.maven.org/maven2/，也能通过~/.m2/settings.xml指定一个代理仓库地址以
+			替代中央仓库以提高速度。
+			因此GitHub Pages并不会将发布的Maven包同步到中央仓库，所以自然使用方必须手动添加一个提供的仓库地址。
+			
+			此外，通过GitHub pages发布Maven repo需要注意，不要改动已发布的版本。因为Maven的仓库不允许修改任何版本的，对一个库
+			进行修改的唯一方法就是发布一个新版本。但通过静态文件的方式发布repo，实际上可修改jar文件，但遵循规则不要修改已发布版本。
+			(Mavenrepo应该是回收Maven版本)
+			
+			
+		通过Nexus(关系)发布到中央仓库：
+			
+			central.sonatype.org：中央仓库。
+			
+			我们可以将自己开源库发布到Maven中央仓库，这样用户就不需要声明repo地址，可直接引用，更显专业。
+			但是不能直接发布到Maven中央仓库，而是通过曲线救国的方式发布到central.sonatype.org，它会定期自动同步到Maven的中央仓库。
+			Nexus(关系)是支持Maven仓库的软件，由Sonatype开发，分为免费和专业版，多数大公司内部使用Nexus走位自己私有Maven仓库，而
+			central.sonatype.org相当于面向开源的一个Nexus公共服务。
+			
+			所以第一步central.sonatype.org注册账号，链接地址步骤：
+				1. 在Publish Your Project下方点击“Learn how »”
+				2. 找到Provide project details，点击Provide
+				3. 在Error页面点击“sign up”注册
+			
+			注册通过得到账号，通过https://central.sonatype.org/pages/apache-maven.html页面就能成功将自己Artifact(人为制造)发布到Nexus上，
+			几小时后，Artifact就会出现在Maven的中央仓库。
+			(在这里指的是将自己认为修改的版本发布到Nexus(关系)上了)
+			
+			发布的难点和重点：
+				必须正确创建GPG签名，Linux和Mac下推荐使用gnupg2。
+				必须在~/.m2/settings.xml中配置好登录用户名和口令，以及GPG口令。
+				<server>
+					<id>ossrh</id>
+					<username>OSSRH-USERNAME</username>
+					<password>OSSRH-PASSWORD</password>
+				</server>
+			
+				在待发布的Artifact的pom.xml中添加OSS的Maven repo地址，以及maven-jar-plugin、maven-source-plugin、maven-gpg-plugin、
+				nexus-staging-maven-plugin。(代码过长此处不予演示，请参考开头链接中代码)
+				最后执行命令mvn clean package deploy 即可发布至central.sonatype.org(中央仓库)。
+				此方法前期需要申请账号和项目流程，后期需安装调试GPG，但只要跑通流程，后续发布只要一行命令。
+		
+		发布到私有仓库：
+			通过nexus-staging-maven-plugin除了可发布到central.sonatype.org(中央仓库)外，也可以发布到私有仓库，如公司内部搭建Nexus(关系)服务器。
+			如果没有私有Nexus服务器，也可发布到GitHubPackages。GitHub Packages(GitHub包)是GitHub提供的仓库服务，支持Maven、NPM、Docker等。
+			使用GitHub Packages时，无论发布Artifact，还是引用已发布的Artifact(人为制造)，都需要明确的授权Token，因此GitHub Packages只能作为
+			私有仓库使用。
+			
+			Token：标记。
+			repository：资源库、仓库、版本库。
+			
+			发布前先登录后在用户的Settings-Developer settings-Personal access tokens中创建两个Token(标记)，一个用于发布，一个用于使用。
+			发布Artifact的Token必须有repo、write:packages和read:packages权限。
+			
+			使用Artifact的Token(标记)只需要read:packages权限。
+			在发布端，将GitHub的用户名和发布Token写入~/.m2/settings.xml配置：
+				<server>
+					<id>github-release</id>
+					<username>GITHUB-USERNAME</username>
+					<password>f052...c21f</password>
+				</server>
+			然后在需发布的Artifact的pom.xml中，添加一个<repository>(版本库)声明：
+				<distributionManagement>
+					<repository>
+						<id>github-release</id>
+						<name>GitHub Release</name>
+						<url>https://maven.pkg.github.com/michaelliao/complex</url>
+					</repository>
+				</distributionManagement>
+			
+			注意到<id>和~/.m2/settings.xml配置中的<id>保持一致，因为发布时Maven根据id找到用于登录的用户名和Token，才能上传文件到
+			GitHub。直接通过命令mvn clean package deploy部署，成功后zaiGitHub用户页面可看见该Artifact。
+			完整的配置可参考：https://github.com/michaelliao/complex/，这是非常简单的支持复数运算的库。
+			
+			使用Artifact时，因为GitHub的Package(包)只能作为私有仓库使用，所以除了使用方的pom.xml声明<repository>(版本库)外：
+				<repositories>
+					<repository>
+						<id>github-release</id>
+						<name>GitHub Release</name>
+						<url>https://maven.pkg.github.com/michaelliao/complex</url>
+					</repository>
+				</repositories>
+				<dependencies>
+					<dependency>
+						<groupId>com.itranswarp</groupId>
+						<artifactId>complex</artifactId>
+						<version>1.0.0</version>
+					</dependency>
+				</dependencies>
+				还要将读写权限的Token配置到~/.m2/settings.xml文件中。
+		
+		结：
+			使用Maven发布一个Artifact(修改版本)时：
+				可以发布到本地，然后由静态服务器提供repo服务，使用方必须声明repo地址；
+				可以发布到central.sonatype.org(中央仓库)，并自动同步到Maven中央仓库，需要前期申请账号以及本地配置；
+				可以发布到GitHub Packages作为私有仓库使用，必须提供Token以及正确的权限才能发布和使用。
+			
+			
+
+
+网络编程：
+	是java最擅长方向之一，由虚拟机实现底层复杂的网络协议，只需要调用java标准库提供的接口，就可简单高效地编写网络程序。
+	
+	网络编程基础：
+		internet：因特网。
+		Network Interface：网络接口。
+		
+		
+		计算机网络是两台或更多计算机组成的网络，同一网络中任意多台电脑可以直接通信，因为计算机之间遵循同一种网路协议。
+		互联网是网络地网络(internet)，将很多计算机网络连接一起，形成全球统一的互联网。
+		某个特定网络的计算机可能使用ABC网络协议，另一个使用XYZ。如果计算机网络通讯协议不统一，就无法将不同网络连接起来
+		形成互联网。因此为将计算机网络接入互联网，就必须使用  TCP/IP 协议。
+		
+		IP地址：
+			互联网中，一个IP地址用于唯一标识一个网络接口(Network Interface网络接口)。一台连入互联网计算机肯定有一个IP地址，
+			也有可能拥有多个IP地址。
+			
+			IP地址分为 IPv4 和 IPv6 两种，IPv4采用32位地址，类似101.202.99.12，
+										  IPv6采用128位地址，类似2001:0DA8:100A:0000:0000:1020:F2F3:1428。
+			IPv4地址总有大约42亿，IPv6大概有340万亿亿亿亿，IPv4地址目前已经耗尽，但IPv6是用不完的。
+			IP地址又分为公网IP地址和内网IP地址。
+			公网IP地址可直接被访问，内网IP地址只能在内网访问。内网IP类似于：
+				192.168.x.x
+				10.x.x.x
+			如果一台计算机只有一个网卡，并接入网络，那么它的本地地址127.0.0.1还有一个IP地址，如101.202.99.12，可通过此IP地址接入网络。
+			如果有两个网卡，那么除了本机地址，还可有两个IP地址，分别接入两个网络。通常连接两个网络的设备是路由器或交换机，至少有两个IP地址，
+			分别接入不同的网络，让网络间连接起来。
+			如果两台计算机位于同一网络，它们之间可直接通信，因为IP地址前端是相同的，也就是网络号相同。网络号IP地址通过子网掩码过滤得到的
+			例如：	
+				IP是101.202.99.2，子网掩码255.255.255.0，那么计算机网络号是：
+					IP = 101.202.99.2
+					Mask = 255.255.255.0
+					Network = IP & Mask = 101.202.99.0
+			
+			每台计算机都要正确的配置IP地址和子网掩码，根据这两个计算网络号，网络号相同则两个计算机处于相同网络下，可直接通信。
+			如果两台计算机计算出网络号不同，那么则不能直接通信，之间必须通过路由器或交换机网络设备直接通信，这种设备称为网关。
+			
+			网关就是连接多个网络，负责将来自同一网络的数据包发到另一个网络，这个过程叫路由。
+			所以一台计算机一个网卡会有3个关键设置：
+				IPv4地址 IPv4子网掩码 IPv4默认网关
+				IP地址，例如：10.0.2.15
+				子网掩码，例如：255.255.255.0
+				网关的IP地址，例如：10.0.2.2
+			
+		域名：
+			直接记忆IP地址十分困难，所以通常使用域名访问某个特定的服务。域名解析服务器DNS负责将域名翻译成对应的IP，
+			客户端根据IP地址访问服务器。
+			域名访问网站流程大概是：
+				用户输入域名	>	域名解析器解析域名将其翻译成IP地址	>	通过IP地址访问到网站
+			
+			cmd窗口通过nslookup 域名 查看域名对应的IP地址(效果如下)：
+				$ nslookup www.liaoxuefeng.com
+				Server:  xxx.xxx.xxx.xxx
+				Address: xxx.xxx.xxx.xxx#53
+
+				Non-authoritative answer:
+				Name:    www.liaoxuefeng.com
+				Address: 47.98.33.223
+			还有一个特殊的本机域名，localhost(本地)，对应IP总是本机地址127.0.0.1。
+			
+		网络模型：
+			Open System Interconnect：公开 系统 互连。
+		
+			计算机网络从底层传输到高层软件设计十分复杂，需合理设计计算机网络模型，必须采用分层模型，每一层负责处理自己的操作。
+			OSI(Open System Interconnect)网络模型是ISO组织定义的一个计算机互联的标准模型，目的是简化网络各层的操作，提供标准接口
+			和维护，这只是一个定义。此模型从上到下依次是：
+				应用层：提供应用程宇之间的通信。
+				表示层：处理数据格式，加解密等等。
+				会话层：负责建立和维护会话。
+				传输层：负责提供端到端的可靠传输。
+				网络层：负责根据目标地址选择路由来传输数据。
+				链路层和物理层负责将数据进行分片并且真正通过物理网络传输，如，无线网，光纤等。
+			
+			互联网实际使用的TCP/IP模型并不是对应到OSI的7层模型，而是大致对应OSI的5层模型。		
+				OSI		TCP/IP
+				应用层	应用层
+				表示层
+				会话层
+				传输层	传输层
+				网络层	IP层
+				链路层	网络接口层
+				物理层
+				
+		常用协议：
+			IP协议是一个分组交换，不保证可靠传输。而TCP协议是传输控制协议，它是面向连接的协议，支持可靠传输和双向通信。
+			TCP协议建立在IP协议之上，就是说IP协议只负责发数据包、超时重传这些机制实现的。并且，TCP协议允许双向通信，
+			即使通信双方可同时发送和接收数据。
+			TCP协议是应用最广泛的协议，许多高级协议都建立在TCP协议上，如HTTP，SMTP等。
+			UDP协议(User Datagram Prodocol)是一种数据报文协议，是无连接协议，不保证可靠传输。因为UDP协议在通信前不需要建立连接，
+			因此它的传输效率比TCP高，而且UDP协议比TCP简单。
+			选择UDP协议时，传输数据通常能容忍丢失，如，一些语音视频通信应用选择UDP协议。
+		
+		结：
+			计算机网络的基本概念主要有：
+				计算机网络：由两台或更多计算机组成的网络；
+				互联网：连接网络的网络；
+				IP地址：计算机的网络接口（通常是网卡）在网络中的唯一标识；
+				网关：负责连接多个网络，并在多个网络之间转发数据的计算机，通常是路由器或交换机；
+				网络协议：互联网使用TCP/IP协议，它泛指互联网协议簇；
+				IP协议：一种分组交换传输协议；
+				TCP协议：一种面向连接，可靠传输的协议；
+				UDP协议：一种无连接，不可靠传输的协议。
+				
+			
+			
+	TCP编程：
+		Application：应用。
+		Socket：插座。
+		Router：路由器。
+		
+		开发网络应用的时候，会遇到Socket(插座)概念，此概念是抽象的，一个应用程序通过一个Socket建立远程连接，而Socket内部通过
+		Tcp/IP协议将数据传输到网络：
+			┌───────────┐                                   ┌───────────┐
+			│Application│                                   │Application│
+			├───────────┤                                   ├───────────┤
+			│  Socket   │                                   │  Socket   │
+			├───────────┤                                   ├───────────┤
+			│    TCP    │                                   │    TCP    │
+			├───────────┤      ┌──────┐       ┌──────┐      ├───────────┤
+			│    IP     │<────>│Router│<─────>│Router│<────>│    IP     │
+			└───────────┘      └──────┘       └──────┘      └───────────┘
+		Socket、TCP和部分IP功能都是由操作系统提供的，不同的编程语言只是提供了对操作系统调用的简单封装。
+		如，java提供的几个Socket相关的类就封装了操作系统提供的接口。
+		因为仅仅通过IP地址通信是不够的，所以需要Socket进行网络通信。同一台计算机同时间会运行多个网络应用程序，如浏览器、QQ
+		、邮件客户端等等。当操作系统接收到一个数据包的时候，如果只有IP地址，是无法判断应发给哪个应用程序的，所以，操作系统
+		抽象出Socket接口，每个应用程序需要各自对应不同的Socket，数据包才能根据Socket正确发到对应的应用程序的。
+		
+		一个Socket由IP地址和端口号(范围是0~65535)组成，可将Socket简单理解为IP地址加端口号。端口号总是由操作系统分配，它是0~65535
+		之间的数字，其中小于1024的端口属于特权端口，需要管理员权限，大于1024的端口可由任意用户的应用程序打开。
+			以下的Socket的前部分就是IP地址，末尾是端口号。
+			 浏览器：101.202.99.2:1201
+			 QQ：	 101.202.99.2:1304
+			 邮箱：	 101.202.99.2:15000
+			使用Socket进行网络编程时，本质上就是两个进程之间的通信。
+			其中一个必须充当服务器端，它会主动监听某个指定客户端，
+			另一个必须充当客户端，它必须主动连接服务器的IP地址和指定端口，如果连接成功，服务器端和客户端就成功建立了一个TCP连接，
+			双方后续就可以随时发送和接收数据。
+			也就是说Socket网络编程的时候会建立两个进程，一个是服务器端，一个客户端，
+				服务器端的会主动监听某个指定的端口，
+				客户端的主动连接服务器的IP地址和指定端口，连接成功后两端成功建立一个TCP连接，然后双方就能随时发送和接收数据。
+			
+			因此当Socket连接成功在服务器端和客户端之间建立后：
+				服务器端，它的Socket是指定的IP地址和指定的端口号。
+				客户端，它的Socket是它所在计算机的IP地址和一个由操作系统分配的随机端口号。
+				两个端的Socket形式如：101.202.99.2:1201。
+		
+			
+		服务器端：
+			accept：接受、同意、承认。
+		
+			使用Socket编程，首先编写服务器端程序，Java标准库提供ServerSocket实现对指定IP和指定端口的监听。
+			ServerSocket经典实现代码参考：https://www.liaoxuefeng.com/wiki/1252599548343744/1305207629676577
+			
+			服务器通过代码：ServerSocket ss = new ServerSocket(6666);
+			在指定端口6666监听。此处没有指定IP地址，表示在计算机的所有网络接口上进行监听。
+			如果ServerSocket监听成功，就使用一个无限循环处理客户端的连接：
+				for (;;) {
+					Socket sock = ss.accept();
+					Thread t = new Handler(sock);
+					t.start();}
+
+				ss.accept表示每当有新的客户端连接，就会返回一个Socket实例，这个Socket实例就是和刚连接客户端进行通信的。
+				由于客户端很多，要实现并发处理，就必须为每个新的Socket创建一个新线程来处理，这样主线程的作用就是接收
+				新的连接，每当收到新连接后，就创建一个新线程进行处理。
+				此处也可使用线程池处理客户端连接，能大大提升运行效率。
+				如果没有客户端进来，accept方法会阻塞并一直等待。如果多个客户端同时连接进来，ServerSocket会将连接扔进队列里，
+				然后一个一个处理。对于java程序而言，只要通过循环不断调用accept就可获取新的连接。
+			
+		客户端：
+			客户端代码参考：https://www.liaoxuefeng.com/wiki/1252599548343744/1305207629676577
+			客户端程序通过：Socket sock = new Socket("localhost", 6666);
+				连接到服务器端，上述代码服务器地址是localhost，表示本机地址，端口是6666。如果连接成功，将返回Socket实例，用于后续通信。
+		
+		Socket流：
+			flush：刷新。
+			
+			Socket创建成功后，无论服务器端还是客户端，都使用Socket实例进行网络通信。因为TCP是基于流的协议，因此，java标准库
+			使用InputStream和OutPutStream封装Socket数据流，这样当使用Socket流，和普通IO流类似：
+				// 用于读取网络数据:
+				InputStream in = sock.getInputStream();
+				// 用于写入网络数据:
+				OutputStream out = sock.getOutputStream();
+			
+			写入网络数据时，要调用flush(刷新)方法。如果不调用的话可能发现，客户端和服务器都收不到数据，这并不是java库的设计问题，
+			而是以流形式写入数据的时候，并不是一写入就立刻发送到网络，而是先写入内存缓冲区，知道缓冲区满了后，才会一次性真正发送
+			到网络，这样设计的目的是为了提高传输效率。如果缓冲区数据少，而又想强制将数据发送到网络，就必须调用flush强制将缓冲区
+			数据发送出去。
+			
+		结：
+			使用Java进行TCP编程时，需要使用Socket模型：
+				服务器端用ServerSocket监听指定端口；
+				客户端使用Socket(InetAddress, port)连接服务器；
+				服务器端用accept()接收连接并返回Socket；
+				双方通过Socket打开InputStream/OutputStream读写数据；
+				服务器端通常使用多线程同时处理多个客户端连接，利用线程池可大幅提升效率；
+				flush()用于强制输出缓冲区到网络。	
+						
+			
+			
+	UDP编程：
+		receive：接收。
+		DatagramPacket：数据包。
+		getOffset：获得偏移量。
+		getLength：获得长度。
+		send：发送。
+		setData：设置数据。
+		
+		UDP比TCP简单很多，因为UDP没有创建连接，数据包也是一次收发一个，所以没有流的概念。
+		在java中使用UDP编程，仍需要使用Socket，因为应用程序在使用UDP时必须指定网络接口(IP)和端口号。
+		注意：UDP端口和TCP端口虽然都使用0~65535，但他们是两套独立的端口，即一个应用程序用TCP占用端口1234，
+			  不影响另一个应用程序用UDP占用端口1234.
+			  
+		服务器端：
+			
+			服务器端使用UDP也需要监听指定的端口。java提供DatagramSocket(数据包通讯端)实现此功能。
+				DatagramSocket ds = new DatagramSocket(6666); // 监听指定端口
+				for (;;) { // 无限循环
+					// 数据缓冲区:
+					byte[] buffer = new byte[1024];
+					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+					ds.receive(packet); // 收取一个UDP数据包
+					// 收取到的数据存储在buffer中，由packet.getOffset(), packet.getLength()指定起始位置和长度
+					// 将其按UTF-8编码转换为String:
+					String s = new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
+					// 发送数据:
+					byte[] data = "ACK".getBytes(StandardCharsets.UTF_8);
+					packet.setData(data);
+					ds.send(packet);
+			服务器端首先使用如下语句在指定的端口监听UDP数据包：
+				DatagramSocket ds = new DatagramSocket(6666);
+			如果没有其他应用程序占据此端口，那么监听成功，旧使用一个无限循环处理收到的UDP数据包：
+				for (;;) {
+					...}
+			要接收一个UDP数据包，需要准备一个byte[]缓冲区，并通过DatagramPacket(数据包)实现接收：
+				byte[] buffer = new byte[1024];
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+				ds.receive(packet);
+			如果收取一个String，那么通过DatagramPackect返回的packet.getLength()和packet.getLength()确定数据在缓冲区的起止位置：
+				getOffset：获得偏移量。
+				getLength：获得长度。
+				String s = new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
+			当服务器收到一个DatagramPacket后，通常立刻回复一个或多个UDP包，因为客户端地址在DatagramPacket中，每次收到的DatagramPacket
+			可能是不同的客户端，如果不回复，客户端就收不到任何UDP包。发送UDP包也是通过DatagramPacket实现，发送代码：
+				byte[] data = ...
+				packet.setData(data);
+				ds.send(packet);	//发送
+		
+		客户端：
+			和服务器端相比，客户端使用UDP时，只要直接向服务器端发送UDP包，然后接收返回的UDP包：
+				DatagramSocket ds = new DatagramSocket();		//数据包
+				ds.setSoTimeout(1000);							//超时设置
+				ds.connect(InetAddress.getByName("localhost"), 6666); // 连接指定服务器和端口
+				// 发送:
+				byte[] data = "Hello".getBytes();
+				DatagramPacket packet = new DatagramPacket(data, data.length);	//设置数据长度
+				ds.send(packet);	//发送数据
+				// 接收:
+				byte[] buffer = new byte[1024];
+				packet = new DatagramPacket(buffer, buffer.length);
+				ds.receive(packet);		//接收
+				String resp = new String(packet.getData(), packet.getOffset(), packet.getLength());
+				ds.disconnect();		//断开连接
+			
+			客户端打开一个DatagramSocket使用代码：
+				DatagramSocket ds = new DatagramSocket();		//数据包通讯端
+				ds.setSoTimeout(1000);		//设置超时时间
+				ds.connect(InetAddress.getByName("localhost"), 6666);	//设置IP和端口号
+			客户端创建DatagramSpcket实例时并不需要指定端口，而是由操作系统自动指定一个当前未使用的端口。紧接着，调用setSoTineout(1000)
+			设定超时1秒，意思是后续接收UDP包时，等待时间最多不会超过1秒，否则在没有UDP包时，客户端会无限期等待下去，这一点
+			和服务器不一样，服务器端可无限等待，因为它本来就被设计成长时间运行。
+			
+			客户端的DatagramSocket还调用一个connect()方法连接到指定的服务器端。因为UDP是无连接的协议，这里的connect方法是为了在
+			客户端的DatagramSocket实例中保存服务器端的IP和端口号，确保这个DatagramSocket实例只能往指定的地址和端口发送UDP包，
+			不能往其他地址和端口发送。这么做不是UDP的限制，而是java内置了安全检查。
+			
+			如果客户端希望向两个不同服务器发送UDP包，那么必须创建两个DatagramSokcet实例。
+			后续的手法数据和服务器端是一致的。通常说，客户端必须先发UDP包，因为客户端不发UDP包，服务器端就根本不知道客户端的地址和端口号。
+			如果客户端认为通信结束，就可调用disconnect断开连接：ds.disconnect()；
+			当然，disconnect并不是真正断开连接，只是清除了客户端DatagramSocket实例记录远程服务器地址和端口号，这样，
+			DatagramSocket实例就可连接另一个服务器端。
+			
+		结：
+			使用UDP协议通信时，服务器和客户端双方无需建立连接：
+				服务器端用DatagramSocket(port)监听端口；
+				客户端使用DatagramSocket.connect()指定远程地址和端口；
+				双方通过receive()和send()读写数据；
+				DatagramSocket没有IO流接口，数据被直接写入byte[]缓冲区。	
+			
+			
+	发送Email(邮箱)：		
+		
 			
 			
 			
