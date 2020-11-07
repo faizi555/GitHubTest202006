@@ -7168,62 +7168,291 @@ Maven基础：
 				DatagramSocket没有IO流接口，数据被直接写入byte[]缓冲区。	
 			
 			
-	发送Email(邮箱)：		
+	发送Email(邮箱)：
+		发送邮件最重要的：
+			password登录口令是qq或163或其他邮箱软件开启STMP服务的一个口令
+		Email电子邮件。邮件软件比如Outlook都是用来收发邮件的
+		使用java也能收发电子邮件。
+		传统邮件是通过邮局投递，然后从邮局到另一个邮局，最终到达用户邮箱：
+			           ┌──────────┐    ┌──────────┐
+					   │PostOffice│    │PostOffice│     .───.
+			┌─────┐    ├──────────┤    ├──────────┤    (   ( )
+			│═══ ░│───>│ ┌─┐ ┌┐┌┐ │───>│ ┌─┐ ┌┐┌┐ │───> `─┬─'
+			└─────┘    │ │░│ └┘└┘ │    │ │░│ └┘└┘ │       │
+					   └─┴─┴──────┘    └─┴─┴──────┘       │
+		电子邮件发送过程类似，只是电子邮件是从用户电脑的邮件，如Outlook发送到服务器上，可能经过若干个邮件服务器上，
+		收件方就可以用软件接收邮件：
+			             ┌─────────┐    ┌─────────┐    ┌─────────┐
+						 │░░░░░░░░░│    │░░░░░░░░░│    │░░░░░░░░░│
+			┌───────┐    ├─────────┤    ├─────────┤    ├─────────┤    ┌───────┐
+			│░░░░░░░│    │░░░░░░░░░│    │░░░░░░░░░│    │░░░░░░░░░│    │░░░░░░░│
+			├───────┤    ├─────────┤    ├─────────┤    ├─────────┤    ├───────┤
+			│       │───>│O ░░░░░░░│───>│O ░░░░░░░│───>│O ░░░░░░░│<───│       │
+			└───────┘    └─────────┘    └─────────┘    └─────────┘    └───────┘
+			   MUA           MTA            MTA            MDA           MUA
+			
+			MUAmta：Mail User Agent、邮件用户代理
+			MTA：MTA Queue、 邮件传输代理队列
+			MDA：Model Driven Architecture、模型驱动架构
+			用户发出	>	服务器	>服务器		>	用户接收
+			
+			类似Outlook这样的邮箱软件称为UMA：Mail User Agent，意思是给用户服务的邮件代理。
+			邮件服务器称为MTA：Mail Transfer Agent，意思是邮件中转的代理。
+			最终到达的邮件服务器称为MDA：Mail Delivery Agent，意思是邮件到达的代理。
+			电子邮件到达MDA就不再动了。实际上Email通常存储在MDA服务器硬盘上，等收件人通过软件或登录浏览器查看邮件。
+			
+			MTA和MDA服务器软件通常是现成的，不用关心服务器内部如何运行。要发送邮件，关心的是如何编写一个MUA软件，将邮件发送到MTA上。
+			MUA到MTA发送邮件的协议就是SMTP协议，它是Simple Mail Transport Protocol的错写，使用标准端口25，也可使用加密端口465或587。
+			SMTP协议是建立在TCP之上的协议，任何程序发送邮件都必须遵守SMTP协议。使用java程序发送邮件时，无需关心SMTP协议的底层原理，
+			只要使用JavaMail这个标准API就能直接发送邮件。
+	
+		准备SMTP登录信息：
+			SMTP就是邮件MUA到MTA的协议(MUA用户邮件代理发送到MTA邮件中转)
+			使用自己的邮件地址me@example.com给他人发邮件，已知他人邮件是xiaoming@somewhere.com，发送邮件前，首先确定作为MTA邮件服务器
+			地址和端口号。邮服务器地址通常是smtp.example.com，端口号由邮件服务器商确定使用25标准端口还是465、587加密端口。
+			
+			以下是一些常用邮件服务商SMTP信息：
+				QQ邮箱：SMTP服务器是smtp.qq.com，端口是465/587；
+				163邮箱：SMTP服务器是smtp.163.com，端口是465；
+				Gmail邮箱：SMTP服务器是smtp.gmail.com，端口是465/587。
+			有了SMTP服务器的域名和端口号，还需要SMTP服务器的登录信息，通常使用自己的邮件地址作为用户名，登录口令是用户口令或
+			一个独立设置的SMTP口令。
+			
+			如果JavaMail发送邮件的话：
+				首先创建一个Maven工程，并将JavaMail县官的两个依赖加入：
+					分别是：javax.mail-api、javax.mail
+					<dependencies>
+						<dependency>
+							<groupId>javax.mail</groupId>
+							<artifactId>javax.mail-api</artifactId>
+							<version>1.6.2</version>
+						</dependency>
+						<dependency>
+							<groupId>com.sun.mail</groupId>
+							<artifactId>javax.mail</artifactId>
+							<version>1.6.2</version>
+						</dependency>
+				然后通过JavaMailAPI廉价到SMTP服务器上：
+					SMTP就是邮件MUA到MTA的协议(MUA用户邮件代理发送到MTA邮件中转)				
+					String smtp = "smtp.office365.com";		// 服务器地址:				
+					String username = "jxsmtp101@outlook.com";	// 登录用户名:					
+					String password = "********";		// 登录口令:登录口令需要去相应邮箱软件开启STMP服务					
+					Properties props = new Properties();	// 连接到SMTP服务器587端口:
+					props.put("mail.smtp.host", smtp); 		// SMTP主机名
+					props.put("mail.smtp.port", "587"); 	// 主机端口号
+					props.put("mail.smtp.auth", "true"); 	// 是否需要用户认证
+					props.put("mail.smtp.starttls.enable", "true"); // 启用TLS加密
+					Session session = Session.getInstance(props, new Authenticator() {	// 获取Session实例:
+						protected PasswordAuthentication getPasswordAuthentication() {
+							return new PasswordAuthentication(username, password);
+						}
+					});
+					session.setDebug(true);		// 设置debug模式便于调试:
+					
+					Session：会话。
+					Properties：属性。
+					Authenticator：认证器。
+					以587端口为例，链接SMTP服务器时，需准备一个Properties对象，填入相关信息。最后获取Session
+					实例时，如果服务器需要认证，还要传入一个Authenticator对象，并返回指定的用户名和口令。
+					当获取到Session实例后，打开调试模式可看到SMTP通信的详细内容，便于调试。
+			
+		发送邮件：
+			Message：通知、消息。
+			Transport：运输，这个对象就是运输消息的意思，再调用send发送消息。
+			InternetAddress：互联网地址，给定一个邮件发送人的地址，即邮箱。
+			setRecipient：容器、接收者，set就是设置接收方地址邮箱。
+			RecipientType：接收者类型。
+			Subject：主题。
+			text：文本。
+			
+			发送邮件先要构建一个Message对象，再调用Transport.send(Message)即可完成发送：
+				MimeMessage message = new MimeMessage(session);			
+				message.setFrom(new InternetAddress("me@example.com"));	// 设置发送方地址:
+				// 设置接收方地址:
+				message.setRecipient(Message.RecipientType.TO, new InternetAddress("xiaoming@somewhere.com"));				
+				message.setSubject("Hello", "UTF-8");	// 设置邮件主题:邮件内容以及编码格式		
+				message.setText("Hi Xiaoming...", "UTF-8");	// 设置邮件正文:				
+				Transport.send(message);	// 发送:
+			大多数邮件服务器要求发送地址和登录用户名必须一致，否则发送将失败。
+			填入真是地址，运行上述代码，可以再控制台看到JavaMail打印的调试信息，调试信息参考：
+				https://www.liaoxuefeng.com/wiki/1252599548343744/1319099923693601
+				根据其中的代码调试信息看出，SMTP协议是一个请求-响应协议，客户端总是发送命令，然后等待服务器响应。
+				服务器响应总是以数字开头，后面信息才是用于调试的文本。这些响应码已经被定义在SMTP协议中了，只要具体查看
+				响应码就能知道出错原因。
+			一切春丽则对方收到一封文本格式的电子邮件。
+			
+		发送HTML邮件：
+			发送HTML和文本邮件类似，只要将：
+				message.setText(body, "UTF-8");改为message.setText(body, "UTF-8", "html");
+				也就是后面加上邮件格式。
+				传入的body是类似<h1>Hello</h1><p>Hi, xxx</p>这样的HTML字符串即可。
+				HTML邮件可在邮件客户端直接显示为网页格式。
+		发送附件：
+			Multipart：多部件、复合。
+			BodyPart：主体部分、部位。
+			Handler：处理器。
+			datahandler：数据处理器。
+			ByteArrayDataSource；字节阵列数据源。
+			content：内容。
+			plain：普通的。
+			application：应用软件。
+			octet：8位字节。
+			stream：流。
+			Header：标题。
+			
+			再电子邮件中携带附件，不能直接调用message.setText()方法，而要构建一个Multipart对象：
+				Multipart multipart = new MimeMultipart();	
+				// 添加text:
+				BodyPart textpart = new MimeBodyPart();		
+				textpart.setContent(body, "text/html;charset=utf-8");
+				multipart.addBodyPart(textpart);
+				// 添加image:
+				BodyPart imagepart = new MimeBodyPart();
+				imagepart.setFileName(fileName);	//文件名
+				imagepart.setDataHandler(new DataHandler(new ByteArrayDataSource(input, "application/octet-stream")));
+				multipart.addBodyPart(imagepart);
+				// 设置邮件内容为multipart:
+				message.setContent(multipart);
+				
+				一个Multipart对象可添加多个BodyPart，其中第一个BodyPart是文本(邮件正文)，后面的BodyPart是附件。
+				BodyPart依靠setContent()决定添加的内容，如果添加文本，用setContent("..","text/plain;charset=utf-8")添加纯文本，
+				或是setContent("","text/html;charset=utf-8")添加HTML文本。如果添加附件，需要设置文件名(不一定和real file name相同)
+				并且添加一个DataHandler(数据处理器)，传入文件的MIME类型。二进制文件可用application/octet-stream，
+				Word文档则是application/msword。
+				最后通过setContent将Multipart添加到Message中，即可发送。
+				
+		发送内嵌图片的HTML邮件：
+			类似<img src="http://example.com/test.jpg">的外部图片链接通常被邮件客户端过滤，并提示显示图片不安全。
+			只有内嵌的图片才能正常在邮件中显示。
+			内嵌图片也是附件，邮件本身也是Multipart，但要做些额外处理。
+				Multipart multipart = new MimeMultipart();
+				// 添加text:
+				BodyPart textpart = new MimeBodyPart();		正文部分、部件
+				content内容：内容格式html
+				textpart.setContent("<h1>Hello</h1><p><img src=\"cid:img01\"></p>", "text/html;charset=utf-8");
+				多部件，添加bodypart正文部分
+				multipart.addBodyPart(textpart);
+				// 添加image:
+				BodyPart imagepart = new MimeBodyPart();	创建正文对象
+				imagepart.setFileName(fileName);	设置文件名
+				设置数据处理器
+				ByteArrayDataSource字节数组数据源
+				imagepart.setDataHandler(new DataHandler(new ByteArrayDataSource(input, "image/jpeg")));	
+				// 与HTML的<img src="cid:img01">关联:
+				imagepart.setHeader("Content-ID", "<img01>");	设置处理器
+				multipart.addBodyPart(imagepart);	添加正文部分
+			在HTML邮件中引用图片时，需设定一个ID，用类似<img src=\"cid:img01\">引用后，再添加图片作为BodyPart(主体部分)时，
+			除了正确设置MIME类型(根据图片类型使用)image/jpeg或image/png，还要设置一个Header(标题)：
+				imagepart.setHeader("Content-ID", "<img01>");
+			这个ID和HTML中引用的ID对应起来，邮件客户端就能正常显示内嵌图片。
+		但如果用户名或口令错误，将会导致535登录失败。
+			DEBUG SMTP: AUTH LOGIN failed
+			Exception in thread "main" javax.mail.AuthenticationFailedException: 535 5.7.3 Authentication unsuccessful [HK0PR03CA0105.apcprd03.prod.outlook.com]
+		登录用户和发件人不一致会导致554拒绝发送错误。	
+			DEBUG SMTP: MessagingException while sending, THROW: 
+			com.sun.mail.smtp.SMTPSendFailedException: 554 5.2.0 STOREDRV.Submission.Exception:SendAsDeniedException.MapiExceptionSendAsDenied;
+		有些时候，如果邮件主题和正文过于简单，会导致554被识别为垃圾邮件的错误(垃圾邮件时最骚的)：
+			DEBUG SMTP: MessagingException while sending, THROW: 
+			com.sun.mail.smtp.SMTPSendFailedException: 554 DT:SPM
+		结：
+			使用JavaMail API发送邮件本质上是一个MUA软件通过SMTP协议发送邮件至MTA服务器；
+			打开调试模式可以看到详细的SMTP交互信息；
+			某些邮件服务商需要开启SMTP，并需要独立的SMTP登录密码。	
+			用户登录口令是需要去邮箱软件设置中开启STMP服务给的口令。
+			
+	接收Email(电子邮箱)：
+		客户端总是通过STMP协议将邮件发送给MTA(MTA 邮件服务器，发送者将邮箱发送到其中，MTA再将邮件发送到MDA服务器硬盘上，
+												那么邮件就算到达了，接收方通过MDA邮件服务器查看邮件)。
+		接收Email则相反，因为邮件最终到达收件人的MDA服务器，so，接收邮件是收件人用自己客户端将邮件从MDA服务器上抓取到
+		本地的过程。
+		接收邮件使用广泛的协议是POP3：Post Office Protocol version 3(邮政局协议版本)，它是建立在TCP连接之上的协议。POP3服务器标准端口是110，
+		如果整个会话需要加密，则使用加密端口995.
+		另一种接收邮件的协议是IMAP：Internet Mail Access Protocol(互联网邮件访问协议)，使用标准端口143和加密端口993。
+		IMAP和POP3的主要区别是，IMAP协议在本地的所有操作都会自动同步到服务器上，并且IMAP可允许用户在邮件服务器的收件箱中创建文件夹。
+		IMAP（互联网访问协议）
+		JavaMail提供IMAP协议支持。因为POP3和IMAP使用方式非常类似，因此只介绍POP3的用法。
 		
+		Store：存储。
+		使用POP3收取Email时，无需关系POP3协议底层，因为JavaMail提供高层接口。首先需要连接到Store对象：
+			// 准备登录信息:
+			String host = "pop3.example.com";
+			int port = 995;
+			String username = "bob@example.com";
+			String password = "password";
+
+			Properties props = new Properties();
+			props.setProperty("mail.store.protocol", "pop3"); // 协议名称
+			props.setProperty("mail.pop3.host", host);// POP3主机名
+			props.setProperty("mail.pop3.port", String.valueOf(port)); // 端口号
+			// 启动SSL:
+			props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+			props.put("mail.smtp.socketFactory.port", String.valueOf(port));
+
+			// 连接到Store:
+			URLName url = new URLName("pop3", host, post, "", username, password);
+			Session session = Session.getInstance(props, null);
+			session.setDebug(true); // 显示调试信息
+			Store store = new POP3SSLStore(session, url);
+			store.connect();
+		一个Store对象表示整个邮箱的存储，要收取邮件需通过Store访问指定的Folder(文件夹)，通常是INBOX表示收件箱。	
+			// 获取收件箱:
+			Folder folder = store.getFolder("INBOX");
+			// 以读写方式打开:
+			folder.open(Folder.READ_WRITE);
+			// 打印邮件总数/新邮件数量/未读数量/已删除数量:
+			System.out.println("Total messages: " + folder.getMessageCount());
+			System.out.println("New messages: " + folder.getNewMessageCount());
+			System.out.println("Unread messages: " + folder.getUnreadMessageCount());
+			System.out.println("Deleted messages: " + folder.getDeletedMessageCount());
+			// 获取每一封邮件:
+			Message[] messages = folder.getMessages();
+			for (Message message : messages) {
+				// 打印每一封邮件:
+				printMessage((MimeMessage) message);}
+		Mime：多用途互联网邮件扩展MIME，Multipurpose Internet Mail Extensions。
+		当获取到一个Message对象时，	可强制转型谓MimeMessage(Mime消息)，然后打印出邮件主题、发件人、收件人信息。
+			void printMessage(MimeMessage msg) throws IOException, MessagingException {
+				// 邮件主题:
+				System.out.println("Subject: " + MimeUtility.decodeText(msg.getSubject()));
+				// 发件人:
+				Address[] froms = msg.getFrom();
+				InternetAddress address = (InternetAddress) froms[0];
+				String personal = address.getPersonal();
+				String from = personal == null ? address.getAddress() : (MimeUtility.decodeText(personal) + " <" + address.getAddress() + ">");
+				System.out.println("From: " + from);
+				// 继续打印收件人:
+				...}
+		较为麻烦的时获取邮件正文。一个MimeMessage对象也是一个Part(部分)对象，可能只包含一个文本，也可能是一个Multipart对象，
+		即由几个part构成，因此，需要递归解析出完整正文：
+			String getBody(Part part) throws MessagingException, IOException {
+				if (part.isMimeType("text/*")) {
+					// Part是文本:
+					return part.getContent().toString();
+				}
+				if (part.isMimeType("multipart/*")) {
+					// Part是一个Multipart对象:
+					Multipart multipart = (Multipart) part.getContent();
+					// 循环解析每个子Part:
+					for (int i = 0; i < multipart.getCount(); i++) {
+						BodyPart bodyPart = multipart.getBodyPart(i);
+						String body = getBody(bodyPart);
+						if (!body.isEmpty()) {
+							return body;}}}return "";
+		最后关闭Folder(文件夹)和Store(仓库、存储)：
+			folder.close(true); // 传入true表示删除操作会同步到服务器上（即删除服务器收件箱的邮件）
+			store.close();
+			
+		结：
+			使用Java接收Email时，可以用POP3协议或IMAP协议。
+
+			使用POP3协议时，需要用Maven引入JavaMail依赖，并确定POP3服务器的域名／端口／是否使用SSL等，然后，调用相关API接收Email。
+
+			设置debug模式可以查看通信详细内容，便于排查错误。	
 			
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+	HTTP编程：
+		
 			
 			
 			
