@@ -7452,56 +7452,349 @@ Maven基础：
 			
 			
 	HTTP编程：
+	
+		Server：服务器。
+		Browser：浏览器。
+		Header：头部、标题。
+		Body：身体、主要部分。
 		
+		其是使用最广泛的Web应用程序使用的基础协议，浏览器访问网站、手机app访问后台服务器皆是通过HTTP协议实现。
+		HTTP是HyperText Transfer Protocol缩写，意为超文本传输协议，是基于TCP协议之上的一种请求-响应协议。
+		浏览器访问网站发送的HTTP请求响应。当浏览器希望访问某个网站时，浏览器和网站之间先建立TCP连接，且服务器
+		总是使用80端口和加密端口443，然后，浏览器像服务器发送HTTP请求，服务器收到后返回一个HTTP响应，并在响应中
+		包含HTML的网页内容，然后通过浏览器的解析就能给用户显示网页。
+		流程如下：
+			
+			1.浏览器和网站服务器先建立TCP连接，服务器端口使用80 or 加密的443。
+			2.浏览器向服务器发送一个HTTP请求，服务器收到，返回一个HTTP响应，其中包含HTML网页内容。
+			3.最后浏览器解析服务器的响应(HTML)就能显示网页
+			            GET / HTTP/1.1
+						Host: www.sina.com.cn
+						User-Agent: Mozilla/5 MSIE
+						Accept: */*                ┌────────┐
+			┌─────────┐ Accept-Language: zh-CN,en  │░░░░░░░░│
+			│O ░░░░░░░│───────────────────────────>├────────┤
+			├─────────┤<───────────────────────────│░░░░░░░░│
+			│         │ HTTP/1.1 200 OK            ├────────┤
+			│         │ Content-Type: text/html    │░░░░░░░░│
+			└─────────┘ Content-Length: 133251     └────────┘
+			  Browser   <!DOCTYPE html>              Server
+			  浏览器	<html><body>				 服务器
+						<h1>Hello</h1>
+						...
+		HTTP请求格式是固定的，由HTTP Header和HTTP Body两部分组成，第一行总是请求方法 路径 HTTP版本，GET/HTTP/1.1
+		表示使用GET请求，路径是/，版本是HTTP/1.1。
+		后续每一行都是固定Header：value格式，称为HTTP Header，服务器依靠某些特定的Header识别客户端请求，如：
+			Host(主机)：表示请求的域名，因为一台服务器上可能有多个网站，因此有必要依靠Host识别用于请求。
+			User-Agent(用户-代理)：标识客户端自身标识信息，不同浏览器有不同标识，服务器依靠User-Agent判断客户端类型。
+			Accept(接受、同意、承认)：标识客户端能处理的HTTP响应格式，*/*标识任意格式，text/*标识任意文本，
+									  image/png标识PNG格式的图片。
+			Accept-Language(接受-语言)：表示客户端接收的语言。多种语言按优先级排序，服务器依靠该字段给用户返回特定
+										语言的网页版本。
+		如果是GET请求，那么该HTTP请求只有HTTP Header，没有HTTP Body(只有标题没有正文部分)。
+		如果是POST请求，那么HTTP请求带有Body，以一个空行分隔。一个典型的带Body的HTTP请求如下：
+			POST /login HTTP/1.1
+			Host: www.example.com
+			Content-Type: application/x-www-form-urlencoded
+			Content-Length: 30
+
+			username=hello&password=123456
+		POST请求通常要设置Content-Type(内容-类型)表示Body(正文)的类型，Content-Length表示Body的长度，这样服务器就能根据
+		请求的Header和Body做出正确响应。
+		此外，GET请求的参数必须是附加在URL上，并以URLEncode方式编码，
+			例如：http://www.example.com/?a=1&b=K%26R，
+			参数分别是a=1和b=K&R。
+		因为URL长度限制，GET请求的参数不能太多，而POST请求的参数就没有长度限制，因为POST请求的参数必须放入Body(正文、身体)中
+		并且，POST请求的参数不一定是URL编码，可按任意格式编码，只要在Content-Type中正确设置即可。常见的发送JSON的POST请求
+		如下：
+			POST /login HTTP/1.1
+			Content-Type: application/json
+			Content-Length: 38
+
+			{"username":"bob","password":"123456"}
+		HTTP响应也是由Header和Body两部分组成，典型HTTP响应如下：
+			HTTP/1.1 200 OK
+			Content-Type: text/html
+			Content-Length: 133251
+
+			<!DOCTYPE html>
+			<html><body>
+			<h1>Hello</h1>
+			...
+		响应第一行总是HTTP版本 响应代码 响应说明，
+		如HTTP/1.1 200 OK
+		表示版本是HTTP1.1、 响应说明是OK。客户端只依赖响应代码判断HTTP响应是否成功。HTTP有固定的响应代码。
+			1xx：表示一个提示性响应，如101表示将切换协议，常见于WebSocket连接
+			2xx：表示一个成功的响应，如200表示成功，206表示只发送部分内容。
+			3xx：表示一个重定向的响应，如301表示永久重定向，303表示客户端应该按指定路径重新发送请求。
+			4xx：表示因为客户端问题导致的错误响应，例如400是因为Content-Type等各种原因导致的无效请求，
+				 404表示指定路径不存在。
+			5xx：表示因为服务器问题导致的错误响应，如500表示服务器内部故障，503表示服务器暂时无法响应。
+		浏览器收到第一个HTTP响应后，解析HTML后，又会发送一系列HTTP请求，如GET /logo.jpg HTTP/1.1请求一个图片，
+		服务器响应图片请求后，会直接将二进制内容的图片发送给浏览器。
+			HTTP/1.1 200 OK
+			Content-Type: image/jpeg
+			Content-Length: 18391
+
+			????JFIFHH??XExifMM?i&??X?...(二进制的JPEG图片)
+		所以服务器总是被动接收客户端一个HTTP请求，然后响应它。客户端则根据需要发送若干个HTTP请求。
+		对于最早期的HTTP/1.0协议，每次发送一个HTTP请求，客户端都需要先创建一个新的TCP连接，然后，收到服务器响应后，
+		关闭这个TCP连接。由于建立TCP连接费时，因此为提高效率，HTTP/1.1允许在一个TCP连接中反复发送-响应，这样大大
+		提高效率。
+		request：请求。
+		response：响应。
+			                       ┌─────────┐
+			┌─────────┐            │░░░░░░░░░│
+			│O ░░░░░░░│            ├─────────┤
+			├─────────┤            │░░░░░░░░░│
+			│         │            ├─────────┤
+			│         │            │░░░░░░░░░│
+			└─────────┘            └─────────┘
+				 │      request 1       │
+				 │─────────────────────>│
+				 │      response 1      │
+				 │<─────────────────────│
+				 │      request 2       │
+				 │─────────────────────>│
+				 │      response 2      │
+				 │<─────────────────────│
+				 │      request 3       │
+				 │─────────────────────>│
+				 │      response 3      │
+				 │<─────────────────────│
+				 ▼                      ▼
+		因为HTTP协议是一个 请求-响应 协议，客户端在发送一个HTTP请求后，必须等待服务器响应后，才能发送下一个请求，这样
+		如果某个响应太慢，就会堵住后面的请求。
+		为了提速，HTTP/2.0允许客户端在没收到响应的时候，发送多个HTTP请求，服务器返回响应的时候，不一定按顺序返回，
+		只要双方能识别出哪个请求，就能做到并行发送和接收。
+			                       ┌─────────┐
+			┌─────────┐            │░░░░░░░░░│
+			│O ░░░░░░░│            ├─────────┤
+			├─────────┤            │░░░░░░░░░│
+			│         │            ├─────────┤
+			│         │            │░░░░░░░░░│
+			└─────────┘            └─────────┘
+				 │      request 1       │
+				 │─────────────────────>│
+				 │      request 2       │
+				 │─────────────────────>│
+				 │      response 1      │
+				 │<─────────────────────│
+				 │      request 3       │
+				 │─────────────────────>│
+				 │      response 3      │
+				 │<─────────────────────│
+				 │      response 2      │
+				 │<─────────────────────│
+				 ▼                      ▼
+		HTTP编程：
+			HTTP设计客户端和服务器端，于TCP类似，需要针对客户端和服务器端编程。
+			服务器端本质是编写web服务器，是复杂的体系，也是JavaEE(企业)开发核心内容。
+			浏览器也是一种HTTP客户端，so，客户端HTTP编程，行为本质和浏览器一样，即发送一个HTTP请求，接收服务器响应后，
+			获得响应内容。只不过浏览器进一步将响应内容解析后渲染并展示给用户，我们使用Java进行HTTP客户端办成仅限于
+			获得响应内容。
+			Java标准库提供基于HTTP的包，但早期JDK版本通过HttpURLConnection访问HTTP，代码参考：
+				https://www.liaoxuefeng.com/wiki/1252599548343744/1319099982413858
+			早期版本需要手动处理InputStream(输入流)，所以使用很麻烦。
+			从Java11开始，引入新的HTTPClient(客户端)，使用链式调用的API，能大大简化HTTP处理。
+			新版HTTPClient，要先创建一个全局HTTPClient实例，因为HTTPClient内部使用线程池优化多个HTTP连接，
+			并且可复用：	build：建立、建造。		builder：生成器。
+				static HttpClient httpClient = HttpClient.newBuilder().build();
+				使用GET请求获取文本内容代码参考：https://www.liaoxuefeng.com/wiki/1252599548343744/1319099982413858
+			Response(响应)
+			BodyHandlers(身体 处理器)
+			ByteArray(字节数组)
+			要获取图片这样的二进制内容，只要将，HttpResponse(http响应).BodyHandlers.ofString()换成
+												HttpResponse.BodyHandlers.ofByteArray()就能获得
+												HttpResponse<byte[]>对象。如果响应内容很大，不希望
+												一次性全部加载到内存中就可使用，
+												HttpResponse.BodyHandlers.ofInputStream()获取一个
+												InputStream流。
+			Content-type(内容-类型)
+			使用Post请求，要准备好发送的body数据正确设置Content-Type，代码内容参考：
+				https://www.liaoxuefeng.com/wiki/1252599548343744/1319099982413858
+									
+		结：
+			Java提供了HttpClient作为新的HTTP客户端编程接口用于取代老的HttpURLConnection接口。
+			HttpClient使用链式调用并通过内置的BodyPublishers和BodyHandlers来更方便地处理数据。	
+			
+	RMI远程调用：		
+		RMI缩写（Radio Magnetic Indicator），无线电磁方位指示器，远程方法调用
+		java的RMI是，JVM中代码可通过网络实现远程调用另一个JVM某个方法。
+		提供服务以方称为服务器，实现远程调用一方称为客户端。
+		
+		最简单的RMI，服务器会提供WorldClock服务，允许客户端获取指定时区时间，允许客户端调用下面方法：
+			//LocalDateTime本地日期时间
+			LocalDateTime getLocalDateTime(String zoneId);
+		实现RMI，服务器和客户端必须共享同一个接口。先定义一个WorkdClock接口：
+			//Zone：地区
+			public interface WorldClock extends Remote {
+				LocalDateTime getLocalDateTime(String zoneId) throws RemoteException;}
+		//Remote：远程。
+		java的RMI规定此接口必须派生自java.rmi.Remote，并在每个方法声明抛出RemoteException。	
+		再是编写服务器的实现类，因为客户端请求的调用方法getLocalDateTime()最终通过这个实现类返回结果，
+		实现类WorldClockService代码如下：
+			public class WorldClockService implements WorldClock {
+				@Override
+				public LocalDateTime getLocalDateTime(String zoneId) throws RemoteException {
+					return LocalDateTime.now(ZoneId.of(zoneId)).withNano(0);}}	nano：纳米
+		服务器端的服务相关代码编写完成。需通过JavaRMI提供一系列底层支持接口，将上面编写的服务以RMI形式暴露在网络上，
+		客户端才能进行使用：(RMI远程方法调用)
+			public class Server {
+				public static void main(String[] args) throws RemoteException {
+					//输出创建世界时钟远程服务
+					System.out.println("create World clock remote service...");
+					// 实例化一个WorldClock世界时钟，WorldClockService世界时钟服务:
+					WorldClock worldClock = new WorldClockService();
+					// 将此服务转换为远程服务接口:
+					//UnicastRemoteObject单播远程对象、exportobject出口对象，将其强转为世界时钟并接收
+					WorldClock skeleton = (WorldClock) UnicastRemoteObject.exportObject(worldClock, 0);
+					// 将RMI服务注册到1099端口:1099就是RMI默认端口
+					//LocateRegistry找到注册表
+					//createRegistry创建注册表
+					Registry registry = LocateRegistry.createRegistry(1099);
+					// 注册此服务，服务名为"WorldClock":
+					//注册一个WorldClock世界时钟的注册表
+					//rebind重新绑定、skeleton骨架为接收单薄远程对象的WroldClock类型。
+					registry.rebind("WorldClock", skeleton);
+		以上目的主要通过RMI提供相关类，将自己的WorldClock实例注册到RMI服务器上。RMI默认端口1099，最后一步注册服务时
+		通过rebind()指定服务器名称为WorldClock世界时钟。
+		下一步就能编写客户端代码。RMI要求服务器和客户端共享同一个端口，因此将WorldClock.java接口文件复制到客户端，
+		然后在客户端实现RMI调用：
+			//Client客户端
+			//NotBoundException不绑定异常
+			//RemoteException远程异常
+			public class Client {
+				public static void main(String[] args) throws RemoteException, NotBoundException {
+					// 连接到服务器localhost，端口1099:
+					//LocateRegistry找到注册表
+					//getRegistry获得注册表
+					//将RMI端口号1099注册表信息使用Registry注册表类型接收
+					Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+					// 查找名称为"WorldClock"的服务并强制转型为WorldClock接口:
+					//lookup检查、查找
+					WorldClock worldClock = (WorldClock) registry.lookup("WorldClock");
+					// 正常调用接口方法:
+					//WorldClock世界时间
+					//getLocalDateTime获取本地日期时间，传入需要获取时间的地区以及城市(可能国家也行)
+					//传入的Asia/Shanghai：Asia亚洲、上海
+					LocalDateTime now = worldClock.getLocalDateTime("Asia/Shanghai");
+					// 打印调用结果:
+					//now显示查询地区当前时间，now现在
+					System.out.println(now);}}
+		先运行服务器再运行客户端。运行结果得知，客户端只有接口，并无实现类，因此客户端获得接口方法返回值实际上通过网络
+		从服务器端获取的。整个过程，对客户端来说，其持有的WorldClock世界时间接口实际上对应一个实现类，是由Registry注册表
+		内部动态生成，并负责将方法调用通过网络传递到服务器端。而服务器端接收网络调用服务并不是自己编写的WorldClockService
+		世界时间服务，而是Registry自动生成代码。
+		
+		客户端的实现类称为stub(末节区域)，服务器端的网络服务类称为skeleton(骨架)，它会真正调用服务器端的WorldClockService
+		(世界时间服务)获取结果，然后将结果通过网络传递给客户端。整个过程RMI底层负责实现序列化和反序列化：
+			序列化：可理解为将java对象转换为字节序列的过程。
+			反序列化：将字节序列恢复成java对象。
+			序列化作用：作用是传递和保存对象时，保证对象的完整性和可传递性。将对象转为有序字节流方便再网络上传输或者保存再本地文件中。
+			反序列化作用：根据字节流中保存的对象状态及描述信息，通过反序列化重建对象。
+			总是核心的作用就是对象状态的保存与创建，核心过程就是字节流中保存的对象状态和描述信息。
+			//Network网络
+			//ClientStub客户端存根
+			//Service服务
+			//ServerSkeleton服务器框架
+			//Service Impl 服务 、Impl：实现类，接口实现
+			┌ ─ ─ ─ ─ ─ ─ ─ ─ ┐         ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+			  ┌─────────────┐                                 ┌─────────────┐
+			│ │   Service   │ │         │                     │   Service   │ │
+			  └─────────────┘                                 └─────────────┘
+			│        ▲        │         │                            ▲        │
+					 │                                               │
+			│        │        │         │                            │        │
+			  ┌─────────────┐   Network   ┌───────────────┐   ┌─────────────┐
+			│ │ Client Stub ├─┼─────────┼>│Server Skeleton│──>│Service Impl │ │
+			  └─────────────┘             └───────────────┘   └─────────────┘
+			└ ─ ─ ─ ─ ─ ─ ─ ─ ┘         └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+		Java的RMI严重依赖序列化和反序列化，很可能造成严重的安全漏洞，因为Java序列化和反序列化不但涉及到数据，还涉及到二进制代码，
+		即使使用白名单机制也难保证100%排除恶意构造的字节码。
+		所以使用RMI时，双方必须是内网相互信任的机器，不要将1099端口暴露再公网上作对外服务。
+		此外，Java的RMI调用机制决定双发必须是Java程序，其他语言难调用Java的RMI。如果使用不同语言进行RPC调用，可选择更通用的协议，如gRPC。
+		RMI我们创建的Client还是Server的接口都是通过调用JVM创建的ClockClientStub和ClockServerStub通过网络连接进行远程调用。
+			
+		结：
+			Java提供了RMI实现远程方法调用：
+				RMI通过自动生成stub和skeleton实现网络调用，客户端只需要查找服务并获得接口实例，服务器端只需要编写实现类并注册为服务；
+
+				RMI的序列化和反序列化可能会造成安全漏洞，因此调用双方必须是内网互相信任的机器，不要把1099端口暴露在公网上作为对外服务。	
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+XML与JSON：
+	XML：可扩展性标记语言
+	JSON：轻量级数据交换格式
+	XML和JSON是经常在网络使用的数据表示格式。
+	
+	XML简介：
+		XML是可扩展性标记语言(eXtensible MarkupLanguage)缩写，是一种数据表示格式，可描述非常复杂的数据结构，常用于传输和存储数据。
+		一个XML文档例子：
+			下面xml的标签有点电子书的感觉：
+				version：版本。
+				encoding：编码。
+				DOCTYPE：文档类型。
+				note：笔记、注释。
+				system：系统。
+				book：书。
+				name：名字。
+				author：作者。
+				isbn：国际标准图书编号。 
+				tags：标签标题、s是复数就是有多个的意思。
+				tag：标题。
+				pubDate：发布时间、出版时间。
+				
+			<?xml version="1.0" encoding="UTF-8" ?>
+			<!DOCTYPE note SYSTEM "book.dtd">
+			<book id="1">
+				<name>Java核心技术</name>
+				<author>Cay S. Horstmann</author>
+				<isbn lang="CN">1234567</isbn>
+				<tags>
+					<tag>Java</tag>
+					<tag>Network</tag>	</tags>	<pubDate/>	</book>
+		XML的特点：
+			纯文本，默认使用UTF-8编码。
+			可嵌套，适合结构化数据。
+			如果将XML内容存为文件，那么它就是一个XML文件，如Book.xml。
+			XML经常通过网络作为消息传输。
+		XML的结构：
+			XML拥有固定结构，首行必定是<?xml version="1.0?>，可加上可选编码。
+			如果类似<!DOCTYPE note SYSTEM "book.dtd">声明是文档定义类型(DTD:Document Type Definition),DTD是可选的。
+			XML的文档内容，一个XML文档有且仅有一个根元素，根元素可包含任意一个子元素，元素可包含属性，如：
+				<isbn lang="CN">1234567</isbn>包含一个属性lang="CN"，且元素必须正确嵌套。空元素可用<tag/>表示。
+			使用<、>引号等标识符，如果内容出现特殊符号，则需要使用&???;表示转义。
+				Java<tm>则是：<name>Java&lt;tm&gt;</name>
+				常见特殊字符表达方式：
+					<	%lt;
+					>	&gt;
+					&	&amp;
+					"	&quot;
+					'	&apos;
+				格式正确的XML(Well Formed)是指XML格式正确的，可被解析器正常读取。合法的XML指，不但XML格式正确，并且
+				其数据结构可被DTD或XSD验证。
+			DTD文档可指定一系列规则：
+				根元素必须是book。
+				book元素必须包含name，author等指定元素，author作者。
+				isbn元素必须包含属性lang。
+			验证XML文件正确方式，最简单的是通过浏览器验证。可直接将XML文件拖拽到浏览器窗口，如果格式错误，浏览器会报错。
+			与HTML不同，浏览器对HTML有一定的"容错性"，缺少关闭标签也能破解，但XML要求严格的格式，任何没有正确嵌套的标签
+			都会导致错误。
+			XML是一个技术体系，出了常用的XML文档本身外，XML还支持：
+				DTD和XSD：验证XML结构和数据是否有效。
+						  DTD：文件类型定义Document Type Definition。
+						  XSD：定义语言。
+				Namespace：XML节点和属性的名字空间。	//namespace空间名称
+				XSLT：将XML转化为另一种文本。
+				XPath：一种XML节点查询语言。	//path：路径。
+			实际中xml的相关功能实现非常复杂很少用到。
+		结：
+			XML使用嵌套结构的数据表示方式，支持格式验证；
+			XML常用于配置文件、网络消息传输等。
+						
+	使用DOM：Document Object Model文档对象模型
+		XML是一种树形
 			
 			
 			
